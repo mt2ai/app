@@ -64,3 +64,4 @@
 1. Abre `pwa/index.html` en cualquier navegador moderno (Chrome, Edge, Safari, Firefox).
 2. Para instalarla como aplicación nativa en tu móvil o PC, pulsa en el menú del navegador: **"Instalar aplicación"** o **"Agregar a la pantalla de inicio"**.
 3. Funciona de manera autónoma sin necesidad de conexión a internet para la gestión del inventario y del plan.
+
