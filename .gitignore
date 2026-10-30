@@ -1,0 +1,15 @@
+# Dependencias y entornos
+node_modules/
+.vscode/
+.idea/
+
+# Sistema operativo
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+# Archivos temporales
+*.tmp
+*.log

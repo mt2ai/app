@@ -1,0 +1,19 @@
+{
+  "name": "NaayTracker — Metin2 Companion",
+  "short_name": "NaayTracker",
+  "description": "App ultra-privada para seguimiento de alquimia, eventos y progreso en Metin2",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0a0a12",
+  "theme_color": "#d4a017",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,5 90,30 90,75 50,95 10,75 10,30' fill='%23c0392b' stroke='%23d4a017' stroke-width='6'/><circle cx='50' cy='50' r='18' fill='%23ffd700'/></svg>",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
+

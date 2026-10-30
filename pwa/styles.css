@@ -1,0 +1,504 @@
+/* NaayTracker — Estilos Oficiales Metin2 Dark UI */
+:root {
+  --bg-main: #0c0d14;
+  --bg-card: #151724;
+  --bg-card-hover: #1c1f30;
+  --bg-input: #0e101a;
+  --border-card: #272b3f;
+  --border-gold: #d4a017;
+  
+  --gold: #f5b041;
+  --gold-glow: rgba(245, 176, 65, 0.25);
+  --ruby: #e74c3c;
+  --ruby-glow: rgba(231, 76, 60, 0.3);
+  --green: #2ecc71;
+  --green-glow: rgba(46, 204, 113, 0.25);
+  --yellow: #f1c40f;
+  --blue: #3498db;
+  --purple: #9b59b6;
+  
+  --text-main: #f0f2f5;
+  --text-muted: #8b92a5;
+  --text-dim: #545b70;
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  min-height: 100vh;
+  padding-bottom: 90px; /* Espacio para barra de navegación inferior en móviles */
+  overflow-x: hidden;
+}
+
+/* Contenedor principal responsive */
+.app-container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Cabecera Principal */
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.brand-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--gold);
+}
+
+.brand-badge {
+  font-size: 0.7rem;
+  background: rgba(212, 160, 23, 0.15);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Botones Icono */
+.btn-icon {
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
+  color: var(--text-main);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover, .btn-icon:active {
+  border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+/* Barra de Navegación Móvil (Inferior Fija) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(21, 23, 36, 0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--border-card);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 4px;
+  z-index: 100;
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  cursor: pointer;
+  flex: 1;
+  padding: 4px 0;
+  transition: all 0.2s;
+}
+
+.nav-item .nav-icon {
+  font-size: 1.25rem;
+}
+
+.nav-item.active {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.nav-item.active .nav-icon {
+  transform: scale(1.15);
+}
+
+/* Tarjetas Principales */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+
+.card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Selector Cuádruple de Zoom (Diario, Semanal, Mensual, Global) */
+.zoom-selector {
+  display: flex;
+  background: var(--bg-input);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-card);
+  margin-bottom: 16px;
+  gap: 4px;
+}
+
+.zoom-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 8px 4px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.zoom-btn.active {
+  background: var(--bg-card);
+  color: var(--gold);
+  border: 1px solid rgba(212, 160, 23, 0.4);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Semáforos y Barras de Progreso */
+.semaphore-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.semaphore-green {
+  background: rgba(46, 204, 113, 0.15);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+
+.semaphore-yellow {
+  background: rgba(241, 196, 15, 0.15);
+  color: var(--yellow);
+  border: 1px solid var(--yellow);
+}
+
+.semaphore-red {
+  background: rgba(231, 76, 60, 0.15);
+  color: var(--ruby);
+  border: 1px solid var(--ruby);
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-input);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), #ff8c00);
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.progress-fill.green {
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+
+.progress-fill.ruby {
+  background: linear-gradient(90deg, #c0392b, #e74c3c);
+}
+
+/* Matriz Semanal de 7 Días */
+.week-matrix {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.day-cell {
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 8px 4px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.day-name {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.day-val {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.day-status {
+  font-size: 0.9rem;
+}
+
+.day-cell.today {
+  border-color: var(--gold);
+  background: rgba(212, 160, 23, 0.08);
+}
+
+/* Lista de Granjeros */
+.farmer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-bottom: 8px;
+}
+
+.farmer-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-complete {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-complete.done {
+  background: rgba(46, 204, 113, 0.15);
+  border-color: var(--green);
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* Cronómetro de Sesión */
+.session-timer-box {
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(212, 160, 23, 0.05));
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.timer-digits {
+  font-family: monospace;
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px var(--gold-glow);
+  margin: 6px 0;
+}
+
+/* Tarjeta Radar de Eventos */
+.radar-box {
+  background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(155, 89, 182, 0.05));
+  border: 1px solid rgba(52, 152, 219, 0.3);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+}
+
+.radar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: var(--blue);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.radar-content {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.radar-timer {
+  font-size: 0.8rem;
+  color: var(--gold);
+  margin-top: 4px;
+}
+
+/* Modales y Diálogos */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-gold);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border-card);
+  padding-bottom: 10px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+/* Tablas Estilizadas */
+.styled-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.styled-table th, .styled-table td {
+  padding: 10px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-card);
+}
+
+.styled-table th {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+/* Botones de Acción Grandes */
+.btn-primary {
+  width: 100%;
+  background: linear-gradient(135deg, #d4a017, #b8860b);
+  border: none;
+  color: #0c0d14;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Ocultar secciones inactivas */
+.view-section {
+  display: none;
+}
+
+.view-section.active {
+  display: block;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

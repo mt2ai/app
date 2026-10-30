@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NaayTracker — Metin2 Companion</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./styles.css">
+  <meta name="theme-color" content="#d4a017">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- CABECERA PRINCIPAL -->
+    <header class="app-header">
+      <div class="brand-title">
+        <span>💎 NaayTracker</span>
+        <span class="brand-badge" id="headerServer">Ruby</span>
+      </div>
+      <div class="header-actions">
+        <span id="headerProfileName" style="font-size: 0.85rem; font-weight: 700; color: var(--gold); align-self: center; margin-right: 6px;">
+          Naay
+        </span>
+        <button class="btn-icon" onclick="abrirModalAjustes()" title="Ajustes y Respaldo">⚙️</button>
+      </div>
+    </header>
+
+    <!-- PANTALLA 1: DASHBOARD CON 4 NIVELES DE ZOOM -->
+    <main id="view-dashboard" class="view-section active">
+      <!-- SELECTOR DE ZOOM CUÁDRUPLE -->
+      <div class="zoom-selector">
+        <button class="zoom-btn active" data-zoom="diario" onclick="switchZoom('diario')">⚡ Diario</button>
+        <button class="zoom-btn" data-zoom="semanal" onclick="switchZoom('semanal')">📅 Semanal</button>
+        <button class="zoom-btn" data-zoom="mensual" onclick="switchZoom('mensual')">📆 Mensual</button>
+        <button class="zoom-btn" data-zoom="global" onclick="switchZoom('global')">🌍 Global</button>
+      </div>
+
+      <!-- CONTENEDOR DINÁMICO DEL ZOOM -->
+      <div class="card" id="zoomContainer">
+        <!-- Renderizado por JS -->
+      </div>
+
+      <!-- RADAR DE EVENTOS EN VIVO -->
+      <div class="radar-box" id="radarEventBox">
+        <!-- Renderizado por JS -->
+      </div>
+
+      <!-- ACCESO RÁPIDO A CONSUMIBLES -->
+      <div class="card">
+        <div class="card-title">
+          <span>🎒 Consumibles de Soporte</span>
+          <span style="font-size: 0.75rem; color: var(--gold); cursor: pointer;" onclick="switchView('view-dss')">Ver Almacén ➔</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+          <div style="background: var(--bg-input); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>🧤 Guantes (2h): <strong id="dashGuantes" style="color: var(--green);">4</strong></div>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn-icon" style="width:22px; height:22px; font-size:0.75rem;" onclick="cambiarConsumible('guantesLadron', -1)">-</button>
+              <button class="btn-icon" style="width:22px; height:22px; font-size:0.75rem;" onclick="cambiarConsumible('guantesLadron', 1)">+</button>
+            </div>
+          </div>
+          <div style="background: var(--bg-input); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
+            <div>🍃 Alubias: <strong id="dashAlubias" style="color: var(--gold);">28 / 60</strong></div>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn-icon" style="width:22px; height:22px; font-size:0.75rem;" onclick="cambiarConsumible('alubiasVerdes', -1)">-</button>
+              <button class="btn-icon" style="width:22px; height:22px; font-size:0.75rem;" onclick="cambiarConsumible('alubiasVerdes', 1)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- PANTALLA 2: PANEL DE GRANJEROS CON CRONÓMETRO -->
+    <section id="view-granjeros" class="view-section">
+      <div class="card">
+        <div class="card-title">
+          <span>👥 Control de Granjeros (20 Cors/Día)</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">4 personajes</span>
+        </div>
+
+        <!-- CRONÓMETRO DE SESIÓN -->
+        <div class="session-timer-box">
+          <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">
+            Cronómetro Anti-Distracciones (12 min/PJ)
+          </span>
+          <div class="timer-digits" id="sessionTimerDigits">12:00</div>
+          <div style="display: flex; justify-content: center; gap: 8px;">
+            <button class="btn-complete done" id="btnTimerToggle" onclick="toggleSessionTimer()">▶️ Iniciar</button>
+            <button class="btn-complete" onclick="resetSessionTimer(12)">🔄 Reiniciar</button>
+          </div>
+        </div>
+
+        <div id="farmersList">
+          <!-- Renderizado por JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PANTALLA 3: RUEDA DSS Y ALMACÉN -->
+    <section id="view-dss" class="view-section">
+      <div class="card">
+        <div class="card-title">
+          <span>🎡 Rueda de Alquimia Interactiva (6 Gemas)</span>
+          <span style="font-size:0.75rem; color:var(--gold); font-weight:700;">Toca una gema para gestionarla</span>
+        </div>
+
+        <!-- RUEDA VISUAL DE LOS 6 SLOTS -->
+        <div id="dssWheelGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
+          <!-- Renderizado por JS -->
+        </div>
+
+        <!-- PANEL DE LA GEMA ACTIVA SELECCIONADA -->
+        <div class="card" style="background: var(--bg-input); border-color: rgba(212, 160, 23, 0.4); margin-bottom: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong id="activeGemaTitle" style="color: var(--gold); font-size: 1rem;">🔴 Rubí</strong>
+            <span id="activeGemaBadge" class="brand-badge">Excelente +6</span>
+          </div>
+
+          <!-- AJUSTES DE CLARIDAD Y NIVEL DE LA GEMA -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+            <div>
+              <label style="font-size: 0.72rem; color: var(--text-muted);">Claridad Actual:</label>
+              <select id="editGemaClaridad" onchange="actualizarClaridadGema(this.value)" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-card); color: #fff; padding: 6px; border-radius: var(--radius-sm); font-size: 0.8rem; margin-top: 3px;">
+                <option value="mate">Mate</option>
+                <option value="claro">Claro</option>
+                <option value="limpido">Límpido</option>
+                <option value="brillante">Brillante</option>
+                <option value="excelente">Excelente</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size: 0.72rem; color: var(--text-muted);">Nivel (+0 a +6):</label>
+              <select id="editGemaNivel" onchange="actualizarNivelGema(this.value)" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-card); color: #fff; padding: 6px; border-radius: var(--radius-sm); font-size: 0.8rem; margin-top: 3px;">
+                <option value="0">+0</option>
+                <option value="1">+1</option>
+                <option value="2">+2</option>
+                <option value="3">+3</option>
+                <option value="4">+4</option>
+                <option value="5">+5</option>
+                <option value="6">+6</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- STOCK DE PIEDRAS EN RESERVA -->
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
+            <div style="background: var(--bg-card); padding: 8px; border-radius: var(--radius-sm);">
+              <span style="font-size: 0.7rem; color: var(--text-muted);">Antiguas</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: var(--gold);" id="stockAntiguas">12</div>
+              <div style="display: flex; justify-content: center; gap: 4px; margin-top: 4px;">
+                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockAntiguas', -1)">-</button>
+                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockAntiguas', 1)">+</button>
+              </div>
+            </div>
+            <div style="background: var(--bg-card); padding: 8px; border-radius: var(--radius-sm);">
+              <span style="font-size: 0.7rem; color: var(--text-muted);">Legendarias</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: var(--ruby);" id="stockLegendarias">9</div>
+              <div style="display: flex; justify-content: center; gap: 4px; margin-top: 4px;">
+                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockLegendarias', -1)">-</button>
+                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockLegendarias', 1)">+</button>
+              </div>
+            </div>
+            <div style="background: var(--bg-card); padding: 8px; border-radius: var(--radius-sm);">
+              <span style="font-size: 0.7rem; color: var(--text-muted);">Míticas</span>
+              <div style="font-size: 1.2rem; font-weight: 800; color: var(--green);" id="stockMiticas">4</div>
+              <div style="display: flex; justify-content: center; gap: 4px; margin-top: 4px;">
+                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockMiticas', -1)">-</button>
+                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockMiticas', 1)">+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CALCULADORA DE CORS & PROYECCIÓN MATEMÁTICA -->
+        <div style="background: var(--bg-input); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="color: var(--blue); font-size: 0.85rem;">🧮 Equivalencias DSS & Cors Estimados:</strong>
+            <span style="font-size: 0.72rem; color: var(--text-muted);">Tasa base ~50%</span>
+          </div>
+          <div id="dssCalculadoraInfo" style="font-size: 0.8rem; color: var(--text-main); line-height: 1.5;">
+            <!-- Renderizado por JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANTALLA 4: ASISTENTE DE ALQUIMIA CON JITTER Y STOP-LOSS -->
+    <section id="view-alquimia" class="view-section">
+      <div class="card">
+        <div class="card-title">
+          <span>🧪 Asistente RNG: Jitter & Stop-Loss</span>
+          <span class="brand-badge" id="asistenteGemaBadge">🔴 Rubí</span>
+        </div>
+
+        <!-- SELECTOR DE INTENTO DE ALQUIMIA -->
+        <div style="margin-bottom: 12px; background: var(--bg-input); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-card);">
+          <label style="font-size: 0.78rem; color: var(--text-muted);">Tipo de Intento que realizarás:</label>
+          <select id="tipoIntentoAlquimia" onchange="renderCalculadoraLuzVerde()" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-card); color: var(--gold); padding: 8px; border-radius: var(--radius-sm); font-weight: 700; margin-top: 4px;">
+            <option value="antiguas">Fusión Antiguas ➔ Legendaria (Requiere 2 Antiguas)</option>
+            <option value="legendarias">Fusión Legendarias ➔ Mítica (Requiere 2 Legendarias)</option>
+            <option value="claridad">Fusión Claridad Mítica (Requiere 2 Míticas)</option>
+            <option value="alubia">Mejorar + con Alubia Verde (Consume 1 Alubia)</option>
+          </select>
+          <label style="display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.78rem; color: var(--text-muted); cursor: pointer;">
+            <input type="checkbox" id="chkAutoSyncStock" checked style="accent-color: var(--gold);">
+            <span>Actualizar stock de piedras/alubias automáticamente</span>
+          </label>
+        </div>
+
+        <!-- SIMULADOR ANTI-QUIEBRA -->
+        <div class="card" style="background: var(--bg-input); border-color: rgba(46, 204, 113, 0.3);">
+          <strong style="color: var(--green); font-size: 0.85rem;">🧮 Calculadora de Luz Verde:</strong>
+          <div id="calcResultado" style="margin-top: 6px;"></div>
+        </div>
+
+        <!-- CUADRO DE STOP-LOSS (OCULTO POR DEFECTO) -->
+        <div id="stopLossBox" style="display: none; background: rgba(231, 76, 60, 0.2); border: 2px solid var(--ruby); border-radius: var(--radius-md); padding: 14px; text-align: center; margin-bottom: 14px;">
+          <h3 style="color: var(--ruby); font-size: 1.1rem;">🚨 STOP-LOSS ACTIVADO</h3>
+          <p style="font-size: 0.85rem; margin: 6px 0;">Se detectaron 2 fallos seguidos. Pausa obligatoria para romper la agrupación de fallos:</p>
+          <div id="stopLossCount" style="font-size: 2rem; font-weight: 900; color: var(--ruby);">60s</div>
+        </div>
+
+        <!-- RELOJ DE JITTER -->
+        <div style="text-align: center; padding: 16px 0;">
+          <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Pausa de Jitter (Desincronización)</span>
+          <div id="jitterCountdown" class="timer-digits">00:00</div>
+          <div id="jitterStatus" style="font-size: 0.9rem; font-weight: 700; color: var(--gold); margin-top: 6px;">
+            Presiona el resultado de tu intento en el juego:
+          </div>
+        </div>
+
+        <!-- BOTONES DE REGISTRO DE INTENTO -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <button id="btnExito" class="btn-primary" style="background: linear-gradient(135deg, #27ae60, #2ecc71); margin: 0;" onclick="ejecutarIntentoAlquimia(true)">
+            ✅ ÉXITO
+          </button>
+          <button id="btnFallo" class="btn-primary" style="background: linear-gradient(135deg, #c0392b, #e74c3c); margin: 0;" onclick="ejecutarIntentoAlquimia(false)">
+            ❌ FALLO
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PANTALLA 5: OBJETIVOS, METAS Y FINANZAS -->
+    <section id="view-finanzas" class="view-section">
+      <!-- META PRINCIPAL DE EQUIPO -->
+      <div class="card">
+        <div class="card-title">
+          <span>🎯 Meta Principal de Equipo</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color: var(--gold); font-size: 1rem; font-weight: 800;">
+              <span id="saldoWons">0</span> Wons | <span id="saldoYang">0</span>
+            </span>
+            <button class="btn-icon" style="width:28px;height:28px;font-size:0.85rem;" onclick="abrirEditorMetaFinanzas()" title="Editar meta de equipo">✏️</button>
+          </div>
+        </div>
+        <div style="background: var(--bg-input); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 12px;">
+          <strong id="metaEquipTitle" style="color: var(--gold); font-size: 0.85rem;">Pendientes de Cielo +9 (+INT)</strong>
+          <div class="progress-track">
+            <div id="metaEquipProgress" class="progress-fill" style="width: 60%;"></div>
+          </div>
+          <div id="metaEquipStatus" style="font-size: 0.75rem; color: var(--text-muted);"></div>
+        </div>
+
+        <!-- LISTA INTERACTIVA DE CONTROL DE OBJETIVOS -->
+        <div class="card-title" style="margin-top: 18px;">
+          <span>📋 Hitos del Plan & Objetivos de Cuenta</span>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+          Plan estratégico de 36 semanas dividido en 5 etapas. El plan marca el rumbo maestro aunque aceleres sacando más Cors:
+        </p>
+
+        <!-- SELECTOR DE FILTRO DE OBJETIVOS -->
+        <div class="zoom-selector" style="margin-bottom: 10px;">
+          <button class="zoom-btn active" id="btnFiltroObjPlan" onclick="setFiltroObjetivos('plan')">🏆 Hitos del Plan (36 Sem)</button>
+          <button class="zoom-btn" id="btnFiltroObjCustom" onclick="setFiltroObjetivos('custom')">✏️ Mis Metas</button>
+          <button class="zoom-btn" id="btnFiltroObjTodos" onclick="setFiltroObjetivos('todos')">🌐 Todos</button>
+        </div>
+
+        <div id="progresoPlanBox" style="margin-bottom: 12px;"></div>
+
+        <div id="listaObjetivos" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+          <!-- Renderizado por JS -->
+        </div>
+
+        <!-- FORMULARIO RÁPIDO PARA AGREGAR OBJETIVO PERSONALIZADO -->
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="inpNuevoObjetivo" placeholder="Ej: Comprar Casco de daño, Subir Ninja a 75..." style="flex: 1; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 8px 10px; border-radius: var(--radius-sm); font-size: 0.82rem;">
+          <button class="btn-complete done" onclick="agregarNuevoObjetivo()" style="padding: 8px 14px; font-size: 0.8rem; white-space: nowrap;">
+            ➕ Añadir
+          </button>
+        </div>
+
+        <!-- MERCADO DE VENTA DE ALQUIMIA -->
+        <div class="card-title" style="margin-top: 22px;">
+          <span>💎 Mercado de Venta de Alquimia</span>
+        </div>
+        <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">
+          Cotización y stock de piedras Antiguas (Rubí, Diamante, Jade, etc.) para financiar tus metas y objetivos:
+        </p>
+        <table class="styled-table">
+          <thead>
+            <tr>
+              <th>Piedra</th>
+              <th>Stock</th>
+              <th>Cotización</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody id="tablaAlquimiaSecundaria">
+            <!-- Renderizado por JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- PANTALLA 7: RADAR Y CALENDARIO DE EVENTOS -->
+    <section id="view-eventos" class="view-section">
+      <div class="card">
+        <div class="card-title">
+          <span>📅 Calendario de Eventos en Vivo</span>
+          <span class="brand-badge" id="eventosServidorBadge">Ruby</span>
+        </div>
+
+        <!-- FILTRO DE EVENTOS (TODOS O ENFOQUE EN ALQUIMIA) -->
+        <div class="zoom-selector" style="margin-bottom: 12px;">
+          <button class="zoom-btn active" id="btnFiltroEvTodos" onclick="setFiltroEventos('todos')">🌐 Todos los Eventos</button>
+          <button class="zoom-btn" id="btnFiltroEvAlquimia" onclick="setFiltroEventos('alquimia')">💎 Solo Alquimia</button>
+        </div>
+
+        <div id="eventosList">
+          <!-- Renderizado por JS (async) -->
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- BARRA DE NAVEGACIÓN INFERIOR MÓVIL (6 PILARES PRINCIPALES) -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-view="view-dashboard" onclick="switchView('view-dashboard')">
+      <span class="nav-icon">🏠</span>
+      <span>Inicio</span>
+    </button>
+    <button class="nav-item" data-view="view-granjeros" onclick="switchView('view-granjeros')">
+      <span class="nav-icon">👥</span>
+      <span>Granjeros</span>
+    </button>
+    <button class="nav-item" data-view="view-dss" onclick="switchView('view-dss')">
+      <span class="nav-icon">🎡</span>
+      <span>Rueda</span>
+    </button>
+    <button class="nav-item" data-view="view-alquimia" onclick="switchView('view-alquimia')">
+      <span class="nav-icon">🧪</span>
+      <span>Alquimia</span>
+    </button>
+    <button class="nav-item" data-view="view-finanzas" onclick="switchView('view-finanzas')">
+      <span class="nav-icon">🎯</span>
+      <span>Objetivos</span>
+    </button>
+    <button class="nav-item" data-view="view-eventos" onclick="switchView('view-eventos')">
+      <span class="nav-icon">📅</span>
+      <span>Eventos</span>
+    </button>
+  </nav>
+
+  <!-- MODAL DE AJUSTES Y RESPALDO -->
+  <div id="modalAjustes" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="color: var(--gold);">⚙️ Configuración & Respaldo</h3>
+        <button class="modal-close" onclick="cerrarModal('modalAjustes')">✕</button>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Nombre de la Cuenta / Personaje:</label>
+        <input type="text" id="cfgNombre" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 8px; border-radius: var(--radius-sm); margin-top: 4px;" value="Naay" placeholder="Nombre de tu cuenta">
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <label style="font-size: 0.8rem; color: var(--text-muted);">Servidor de Juego:</label>
+        <select id="cfgServidor" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 8px; border-radius: var(--radius-sm); margin-top: 4px;">
+          <option value="Ruby">Ruby (Grupo Onyx)</option>
+          <option value="Sapphire">Sapphire</option>
+          <option value="Iberia">Iberia (España)</option>
+          <option value="Europe">Europe</option>
+          <option value="Teutonia">Teutonia / Germania</option>
+          <option value="TigerGhost">TigerGhost</option>
+          <option value="Nyx">Nyx</option>
+        </select>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px;">
+          👥 Nombres de tus 4 Fragmenteros (Cors diarios):
+        </label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim);">Fragmentero 1:</label>
+            <input type="text" id="cfgGranjero1" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 7px; border-radius: var(--radius-sm); font-size: 0.82rem; margin-top: 2px;" placeholder="Fragmentero 1">
+          </div>
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim);">Fragmentero 2:</label>
+            <input type="text" id="cfgGranjero2" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 7px; border-radius: var(--radius-sm); font-size: 0.82rem; margin-top: 2px;" placeholder="Fragmentero 2">
+          </div>
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim);">Fragmentero 3:</label>
+            <input type="text" id="cfgGranjero3" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 7px; border-radius: var(--radius-sm); font-size: 0.82rem; margin-top: 2px;" placeholder="Fragmentero 3">
+          </div>
+          <div>
+            <label style="font-size: 0.72rem; color: var(--text-dim);">Fragmentero 4:</label>
+            <input type="text" id="cfgGranjero4" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 7px; border-radius: var(--radius-sm); font-size: 0.82rem; margin-top: 2px;" placeholder="Fragmentero 4">
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="guardarAjustesPerfil()" style="margin-bottom: 16px;">
+        💾 Guardar Cambios
+      </button>
+
+      <hr style="border: 0; border-top: 1px solid var(--border-card); margin: 16px 0;">
+
+      <h4 style="color: var(--text-main); font-size: 0.9rem; margin-bottom: 10px;">📦 Migración y Copias de Seguridad (100% Offline)</h4>
+      
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="btn-complete done" onclick="exportarDatosJSON()" style="justify-content: center; padding: 10px;">
+          📤 Descargar Archivo de Respaldo (.json)
+        </button>
+        
+        <label class="btn-complete" style="justify-content: center; padding: 10px; cursor: pointer; text-align: center;">
+          📥 Restaurar desde Archivo (.json)
+          <input type="file" accept=".json" onchange="importarDatosJSON(this)" style="display: none;">
+        </label>
+
+        <button class="btn-complete" onclick="copiarCodigoTexto()" style="justify-content: center; padding: 10px;">
+          📋 Copiar Código de Datos al Portapapeles
+        </button>
+
+        <button class="btn-complete" onclick="restaurarDesdeCodigoTexto()" style="justify-content: center; padding: 10px;">
+          📥 Pegar Código de Datos
+        </button>
+
+        <hr style="border: 0; border-top: 1px solid rgba(231, 76, 60, 0.3); margin: 12px 0 6px 0;">
+
+        <button class="btn-complete" onclick="restablecerTodosLosDatos()" style="justify-content: center; padding: 10px; background: rgba(231, 76, 60, 0.15); border: 1px solid var(--red); color: #ff6b6b; font-weight: 700;">
+          🗑️ Borrar Todos los Datos (Limpieza Total)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+
+  <!-- MODAL: VENTA ALQUIMIA SECUNDARIA -->
+  <div id="modalVentaAlquimia" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="lblVentaItem" style="color:var(--gold);">Vender Piedra</h3>
+        <button class="modal-close" onclick="cerrarModal('modalVentaAlquimia')">✕</button>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.8rem;color:var(--text-muted);">Precio en Wons:</label>
+        <input type="number" id="inpVentaWons" min="0" step="0.5" value="0" style="width:100%;background:var(--bg-input);border:1px solid var(--border-card);color:#fff;padding:8px;border-radius:var(--radius-sm);margin-top:4px;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.8rem;color:var(--text-muted);">Precio en KK Yang:</label>
+        <input type="number" id="inpVentaKK" min="0" value="0" style="width:100%;background:var(--bg-input);border:1px solid var(--border-card);color:#fff;padding:8px;border-radius:var(--radius-sm);margin-top:4px;">
+      </div>
+      <button class="btn-primary" onclick="confirmarVentaAlquimia()">✅ Confirmar Venta</button>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR META DE EQUIPO -->
+  <div id="modalEditarMeta" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="color:var(--gold);">✏️ Editar Meta de Equipo</h3>
+        <button class="modal-close" onclick="cerrarModal('modalEditarMeta')">✕</button>
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.8rem;color:var(--text-muted);">Nombre del objetivo:</label>
+        <input type="text" id="inpMetaNombre" style="width:100%;background:var(--bg-input);border:1px solid var(--border-card);color:#fff;padding:8px;border-radius:var(--radius-sm);margin-top:4px;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.8rem;color:var(--text-muted);">Costo en Wons:</label>
+        <input type="number" id="inpMetaCosto" min="1" step="0.5" value="35" style="width:100%;background:var(--bg-input);border:1px solid var(--border-card);color:#fff;padding:8px;border-radius:var(--radius-sm);margin-top:4px;">
+      </div>
+      <button class="btn-primary" onclick="guardarEditorMetaFinanzas()">💾 Guardar Meta</button>
+    </div>
+  </div>
+
+</body>
+</html>
+
