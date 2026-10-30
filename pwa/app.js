@@ -202,28 +202,33 @@ function filtrarEventosPorServidor(eventos, servidorActual) {
 
 const HITOS_PLAN_MAESTRO = [
   // ETAPA 1: Cimientos de Farmeo (Semanas 1-8)
-  { id: "p1", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Mantener 4 fragmenteros activos (20 Cors/día = 140/sem)", completado: false, cat: "farmeo", esHitoPlan: true },
-  { id: "p2", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Acumular primera reserva de 4 Antiguas (colchón seguro de fusión)", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p3", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Vender primeras piedras secundarias para iniciar caja de Wons", completado: false, cat: "finanzas", esHitoPlan: true },
+  { id: "p1", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Mantener 4 fragmenteros activos (20 Cors/día = 140/sem = ~560/mes)", completado: false, cat: "farmeo", esHitoPlan: true },
+  { id: "p2", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Acumular primera reserva de 4 Antiguas (colchón seguro de fusión con Jitter)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p3", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Vender primeras piedras secundarias para iniciar caja de Wons y comprar equipo base", completado: false, cat: "finanzas", esHitoPlan: true },
 
-  // ETAPA 2: Míticos Mates (Semanas 9-16)
-  { id: "p4", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Fusionar primera Legendaria con protocolo Jitter", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p5", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Obtener primer Rubí Mítico Mate (Ataque / Media)", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p6", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Equipar gema activa en la Rueda DSS", completado: false, cat: "alquimia", esHitoPlan: true },
+  // ETAPA 2: Base Mítica Mate & Conciencia Piramidal (Semanas 9-16)
+  { id: "p4", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Fusionar primeras Legendarias respetando la regla de 4 Antiguas", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p5", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Obtener primer Rubí Mítico Mate y equiparlo provisionalmente (daño clave)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p6", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "⚠️ REGLA DE ORO: NO intentar subir claridad con solo 2 Míticas (esperar colchón)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p7", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Iniciar banco de almacenamiento de Míticas para la pirámide de pureza", completado: false, cat: "alquimia", esHitoPlan: true },
 
-  // ETAPA 3: Pureza Clara & Límpida (Semanas 17-24)
-  { id: "p7", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Acumular lote de Míticas para fusiones de claridad con Stop-Loss", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p8", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Subir Rubí a Claridad Clara o Límpida", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p9", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Financiar primera gran pieza de equipo con mercado de alquimia", completado: false, cat: "equipo", esHitoPlan: true },
+  // ETAPA 3: Protocolo 4 Míticas ➔ Claridad Clara & Límpida (Semanas 17-24)
+  { id: "p8", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Acumular colchón de 4 Míticas Mate antes del primer asalto de claridad", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p9", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Subir Rubí a Claridad Clara absorbiendo posibles fallos (~50%) con Stop-Loss", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p10", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Acumular lote de Míticas Claras (requiere 4 Míticas Claras para luz verde)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p11", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Alcanzar Claridad Límpida en el Rubí manteniendo una piedra de respaldo", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p12", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Financiar primera gran pieza de equipo con mercado de alquimia secundaria", completado: false, cat: "equipo", esHitoPlan: true },
 
-  // ETAPA 4: Colchón de Brillantes (Semanas 25-32)
-  { id: "p10", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Alcanzar Claridad Brillante en gema principal", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p11", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Iniciar segunda gema de la Rueda (Jade / Diamante)", completado: false, cat: "alquimia", esHitoPlan: true },
+  // ETAPA 4: La Pirámide a Brillante (Semanas 25-32)
+  { id: "p13", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Construir pirámide: Fabricar lote de Míticas Límpidas (equivalen a 8+ Míticas Mate)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p14", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Alcanzar Claridad Brillante en Rubí con protocolo de 4 piedras por intento", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p15", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Iniciar segunda gema de la Rueda (Jade o Diamante) con el excedente de fragmenteros", completado: false, cat: "alquimia", esHitoPlan: true },
 
-  // ETAPA 5: Excelente +6 (Semanas 33-36)
-  { id: "p12", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Conseguir Rubí Mítico Excelente (salto crítico ~30-35%)", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p13", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Subir Rubí Excelente a +6 con reserva de 20+ alubias verdes", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p14", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Culminar la Meta de Equipo Principal", completado: false, cat: "equipo", esHitoPlan: true }
+  // ETAPA 5: Asalto a Excelente & Nivel +6 (Semanas 33-36)
+  { id: "p16", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Acumular lote crítico para Excelente: 2 Brillantes (+ lote de absorción para tasa ~30-35%)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p17", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "🏆 ¡Conseguir Rubí Mítico Excelente! (Culminación de la pirámide de ~16-30 Míticas)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p18", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Subir Rubí Excelente a +6 con reserva mínima de 20 alubias verdes", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p19", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Culminar la Meta de Equipo Principal con el poder del Rubí Excelente +6", completado: false, cat: "equipo", esHitoPlan: true }
 ];
 
 const DEFAULT_STATE = {
@@ -302,12 +307,20 @@ function loadState() {
     if (merged.finanzas?.alquimiaSecundaria && !merged.finanzas.alquimiaSecundaria.rubi) {
       merged.finanzas.alquimiaSecundaria.rubi = { nombre: "Rubí Antiguo", stock: 0, ultimoPrecioWons: 0, ultimoPrecioKK: 0 };
     }
-    // Asegurar objetivos y sincronizar con los 14 hitos del plan maestro
+    // Asegurar objetivos y sincronizar con los hitos del plan maestro
     if (!merged.objetivos || !Array.isArray(merged.objetivos) || merged.objetivos.length === 0) {
       merged.objetivos = JSON.parse(JSON.stringify(HITOS_PLAN_MAESTRO));
     } else {
+      // Sincronizar hitos del plan maestro preservando si el usuario ya los completó
       HITOS_PLAN_MAESTRO.forEach(hp => {
-        if (!merged.objetivos.some(o => o.id === hp.id || o.texto === hp.texto)) {
+        const existing = merged.objetivos.find(o => o.id === hp.id);
+        if (existing) {
+          existing.texto = hp.texto;
+          existing.etapa = hp.etapa;
+          existing.etapaNombre = hp.etapaNombre;
+          existing.cat = hp.cat;
+          existing.esHitoPlan = true;
+        } else {
           merged.objetivos.push(Object.assign({}, hp));
         }
       });
@@ -1221,10 +1234,6 @@ function renderRuedaDSS() {
   // 3. Calculadora y Proyecciones DSS
   const calcInfo = document.getElementById("dssCalculadoraInfo");
   if (calcInfo) {
-    // Estimación matemática con probabilidad decreciente:
-    // Antigua ➔ Legendaria: ~60-64%
-    // Legendaria ➔ Mítica: ~45-50%
-    // Claridad Mate ➔ Excelente: Tasa decreciente (~50% Mate ➔ ~30% Brillante a Excelente)
     const ant = gemaData.stockAntiguas || 0;
     const leg = gemaData.stockLegendarias || 0;
     const mit = gemaData.stockMiticas || 0;
@@ -1233,12 +1242,19 @@ function renderRuedaDSS() {
     const potMiticas = Math.floor((leg + potLegendarias) / 2);
 
     calcInfo.innerHTML = `
-      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
         <span>🎯 Potencial directo en almacén:</span>
         <strong style="color:var(--gold);">+${potLegendarias} Legendarias / +${potMiticas} Míticas</strong>
       </div>
-      <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.4;">
-        📉 <strong>Curva de éxito decreciente:</strong> La tasa baja conforme te acercas a Mítico (~64% Antigua ➔ ~45% a Mítica ➔ ~30% en Excelente). Para <strong>Mítico Excelente</strong> se recomiendan entre <strong>16 y 24 Míticos Mates</strong> de colchón para absorber las quiebras.
+      <div style="padding: 8px 10px; background: rgba(212, 160, 23, 0.08); border-left: 3px solid var(--gold); border-radius: 4px; font-size: 0.74rem; line-height: 1.45; margin-bottom: 6px;">
+        <strong style="color: var(--gold);">📐 Pirámide de Claridad a Excelente (Metin2):</strong><br>
+        • <strong>Mate ➔ Claro:</strong> Requiere 2 Míticas Mate (Colchón seguro: <strong>4 Míticas</strong>).<br>
+        • <strong>Claro ➔ Límpido:</strong> Requiere 2 Claras (Equivale a 4 Míticas Mate exitosas).<br>
+        • <strong>Límpido ➔ Brillante:</strong> Requiere 2 Límpidas (Equivale a 8 Míticas Mate exitosas).<br>
+        • <strong>Brillante ➔ Excelente:</strong> Requiere 2 Brillantes (Equivale a 16+ Míticas Mate teóricas; ~25-35 reales por tasa del ~30-35%).
+      </div>
+      <div style="font-size:0.73rem; color:var(--text-muted); line-height:1.4;">
+        ⚠️ <strong>Regla Anti-Quiebra de Claridad:</strong> Nunca fusiones pureza con solo 2 Míticas. Un fallo destruye la piedra y paraliza semanas de trabajo. Acumula siempre <strong>4+ Míticas</strong> antes de intentar subir pureza.
       </div>
     `;
   }
@@ -1399,35 +1415,57 @@ function renderCalculadoraLuzVerde() {
       dictamen = "💎 Colchón de 3+ intentos: ~83%+ de probabilidad de conseguir al menos 1 Mítica.";
     }
   } else if (tipo === "claridad") {
-    // La claridad también es decreciente: Mate ➔ Claro (~50%), Claro ➔ Límpido (~45%), Límpido ➔ Brillante (~40%), Brillante ➔ Excelente (~30-35%)
+    // La claridad exige fusionar 2 gemas de la misma pureza.
+    // REGLA FUNDAMENTAL DE METIN2: Con solo 2 míticas tienes 1 intento con 50% de fallo (quiebra).
+    // Para subir claridad de forma segura y tener luz verde se necesitan AL MENOS 4 MÍTICAS.
     const stockMit = gemaData.stockMiticas || 0;
     const clarActual = gemaData.claridad || "mate";
-    stockLabel = `Stock de ${gemaKey.toUpperCase()} Mítico: ${stockMit} | Claridad: ${clarActual.toUpperCase()}`;
+    stockLabel = `Stock de ${gemaKey.toUpperCase()} Mítico: ${stockMit} piedras | Claridad Actual: ${clarActual.toUpperCase()}`;
+
+    let siguienteClaridad = "Claro";
+    let tasaPaso = "~50%";
+    let piramideCosto = "Mate ➔ Claro (x2 Míticas)";
+    if (clarActual === "claro") {
+      siguienteClaridad = "Límpido";
+      tasaPaso = "~45%";
+      piramideCosto = "Claro ➔ Límpido (equivale a 4 Míticas Mate base)";
+    } else if (clarActual === "limpido") {
+      siguienteClaridad = "Brillante";
+      tasaPaso = "~40%";
+      piramideCosto = "Límpido ➔ Brillante (equivale a 8 Míticas Mate base)";
+    } else if (clarActual === "brillante") {
+      siguienteClaridad = "Excelente";
+      tasaPaso = "~30-35%";
+      piramideCosto = "Brillante ➔ Excelente (equivale a 16+ Míticas Mate teóricas; ~25-35 reales)";
+    }
 
     if (clarActual === "excelente") {
       semColor = "green";
-      prob = "Máxima Claridad";
-      dictamen = "🏆 ¡Gema en Claridad Excelente! Es el grado máximo de pureza en el juego.";
+      prob = "Máxima Pureza";
+      dictamen = "🏆 ¡Gema en Claridad Excelente! Es el grado máximo de pureza alcanzable en Metin2.";
     } else if (stockMit === 0) {
       semColor = "red";
       prob = "Sin stock";
-      dictamen = "⛔ Sin material: Se requieren al menos 2 gemas Míticas para intentar subir claridad.";
+      dictamen = `⛔ Sin míticas: Necesitas fusionar 2 Míticas del mismo grado y acumular al menos 4 de colchón para intentar subir a ${siguienteClaridad} sin arriesgar quiebra.`;
     } else if (stockMit === 1) {
       semColor = "red";
       prob = "Insuficiente (1/2)";
-      dictamen = "⚠️ Tienes 1 Mítica; necesitas otra de la misma clase para la fusión de claridad.";
-    } else {
-      let tasaPaso = "~50%";
-      let saltoTxt = "Mate ➔ Claro";
-      if (clarActual === "claro") { tasaPaso = "~45%"; saltoTxt = "Claro ➔ Límpido"; }
-      else if (clarActual === "limpido") { tasaPaso = "~40%"; saltoTxt = "Límpido ➔ Brillante"; }
-      else if (clarActual === "brillante") { tasaPaso = "~30-35%"; saltoTxt = "Brillante ➔ Excelente"; }
-
-      semColor = (clarActual === "brillante" && stockMit < 4) ? "yellow" : "green";
-      prob = `${tasaPaso} (${saltoTxt})`;
+      dictamen = `⚠️ Tienes 1 sola Mítica: Cada intento consume 2 Míticas. Para avanzar hacia ${siguienteClaridad} necesitas acumular piedras de respaldo.`;
+    } else if (stockMit < 4) {
+      // 2 o 3 míticas = 1 intento sin colchón
+      semColor = "red";
+      prob = `${tasaPaso} (1 intento - Alto Riesgo)`;
+      dictamen = `🚨 ALTO RIESGO DE QUIEBRA (Tienes ${stockMit}/4 Míticas): Sólo tienes para 1 intento (${tasaPaso}). Si falla, perderás 1 Mítica y te quedarás con 1 sola piedra sin poder reintentar. <strong>Regla del Plan: Acumula mínimo 4 Míticas</strong> antes de fusionar.`;
+    } else if (stockMit < 6) {
+      semColor = (clarActual === "brillante") ? "yellow" : "green";
+      prob = `${tasaPaso} (2 intentos)`;
       dictamen = clarActual === "brillante"
-        ? "⚠️ ¡Paso crítico a Excelente! La tasa desciende a solo ~30-35%. Se recomienda tener varias Míticas de reserva."
-        : `🟢 Intento de claridad (${saltoTxt}). Probabilidad estimada ~${tasaPaso}. Pausa obligatoria con Jitter.`;
+        ? `🟡 Salto crítico a Excelente (${tasaPaso}): Tienes ${stockMit} Míticas (2 intentos). Por el alto fallo (~65%), se recomienda tener 6+ piedras o aplicar Stop-Loss estricto.`
+        : `🟢 ¡Luz Verde para Claridad (${clarActual.toUpperCase()} ➔ ${siguienteClaridad.toUpperCase()})! Tienes colchón de ${stockMit} Míticas (2 intentos). Si falla el primero, te quedarán piedras para reintentar. [${piramideCosto}]`;
+    } else {
+      semColor = "green";
+      prob = `${tasaPaso} (Colchón Óptimo 3+ intentos)`;
+      dictamen = `💎 ¡Colchón Óptimo de Seguridad (${stockMit} Míticas)! Tienes margen para amortiguar hasta 2 fallos consecutivos y lograr el salto a ${siguienteClaridad}. Respeta la pausa Jitter.`;
     }
   } else {
     // Tipo: antiguas (Fusión Antiguas ➔ Legendaria)
