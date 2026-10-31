@@ -521,6 +521,19 @@
         <span data-icon="save"></span> Guardar Cambios
       </button>
 
+      <div class="sync-box">
+        <div class="form-group">
+          <label for="syncCode">Sincronización entre dispositivos</label>
+          <input type="text" id="syncCode" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Código de 12 caracteres">
+        </div>
+        <div class="sync-actions">
+          <button class="btn-complete" onclick="generarCodigoSync()">Generar código</button>
+          <button class="btn-primary" onclick="conectarSync()">Conectar</button>
+        </div>
+        <div id="syncStatus" class="sync-status">Sin conectar.</div>
+        <button id="syncDisconnect" class="sync-disconnect" onclick="desconectarSync()" style="display: none;">Desconectar</button>
+      </div>
+
       <details class="settings-backup">
         <summary><span class="label-icon" data-icon="box"></span> Respaldo & PWA (100% offline)</summary>
         <div class="settings-actions">
@@ -707,6 +720,8 @@
     </div>
   </div>
 
+  <script src="./supabase-config.js"></script>
+  <script src="./sync.js"></script>
   <script src="./app.js"></script>
 </body>
 </html>

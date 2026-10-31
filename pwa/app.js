@@ -657,6 +657,20 @@ function cambiarConsumible(clave, delta) {
 function saveState() {
   localStorage.setItem("naaytracker_state", JSON.stringify(STATE));
   renderAll();
+  if (typeof registrarCambioLocal === "function") registrarCambioLocal();
+}
+
+function estadoParaSincronizar() {
+  const snapshot = JSON.parse(JSON.stringify(STATE));
+  if (snapshot.cronometroGeneral) {
+    snapshot.cronometroGeneral.inicio = null;
+  }
+  return snapshot;
+}
+
+function aplicarEstadoExterno(nuevoEstado) {
+  STATE = mergeStateWithDefaults(nuevoEstado);
+  saveState();
 }
 
 // ==========================================
@@ -3010,6 +3024,7 @@ document.addEventListener("DOMContentLoaded", () => {
   iniciarGestosSwipe();
   iniciarListaNotificaciones();
   iniciarObjetivoAlquimia();
+  if (typeof iniciarSyncAutomatico === "function") iniciarSyncAutomatico();
 
   // Actualizar el cronómetro con precisión de décimas
   setInterval(actualizarCronometroGeneral, 100);

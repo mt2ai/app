@@ -2795,6 +2795,59 @@ textarea::placeholder {
   font-size: 0.8rem;
 }
 
+.sync-box {
+  background: #0f1116;
+  border: 1px solid #222630;
+  border-radius: 12px;
+  padding: 12px;
+  margin: 4px 0 14px;
+}
+
+.sync-box .form-group {
+  margin-bottom: 8px;
+}
+
+.sync-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.sync-actions > * {
+  width: 100%;
+  justify-content: center;
+  margin: 0;
+  padding: 8px;
+  font-size: 0.68rem;
+}
+
+.sync-status {
+  font-size: 0.66rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 8px;
+}
+
+.sync-status.ok {
+  color: #6fd3a8;
+}
+
+.sync-status.error {
+  color: #f08a81;
+}
+
+.sync-disconnect {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 0.62rem;
+  text-decoration: underline;
+  padding: 0;
+  margin-top: 6px;
+  cursor: pointer;
+}
+
 .settings-backup {
   border-top: 1px solid var(--border-card);
   padding-top: 4px;
