@@ -203,8 +203,8 @@ function filtrarEventosPorServidor(eventos, servidorActual) {
 const HITOS_PLAN_MAESTRO = [
   // ETAPA 1: Cimientos de Farmeo y Acopio de Antiguas (Semanas 1-8)
   { id: "p1", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Mantener 4 fragmenteros activos (20 Cors/día = 140/sem = ~560/mes)", completado: false, cat: "farmeo", esHitoPlan: true },
-  { id: "p2", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Vender primeras piedras secundarias (Jade, Ónice, etc.) para crear caja de Wons", completado: false, cat: "finanzas", esHitoPlan: true },
-  { id: "p3", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Acumular primer lote de 10 Rubíes Antiguos (colchón de 5 intentos a Legendaria)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p2", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Vender secundarias (Jade, Ónice, etc.) para crear caja de Wons y comprar Rubíes baratos", completado: false, cat: "finanzas", esHitoPlan: true },
+  { id: "p3", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Arbitraje de Alquimia: Comprar Rubíes Antiguos en el mercado con fondos de secundarias (Hito 10 Antiguas)", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p4", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Acumular segundo lote de 20 Rubíes Antiguos (banco de 10 intentos a Legendaria)", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p5", etapa: 1, etapaNombre: "Etapa 1 (Sem 1-8)", texto: "Acumular lote óptimo de 30 Rubíes Antiguos para sesión de refinado masivo", completado: false, cat: "alquimia", esHitoPlan: true },
 
@@ -255,12 +255,12 @@ const DEFAULT_STATE = {
   ruedaDSS: {
     gemaActiva: "rubi",
     slots: {
-      rubi: { estado: "en_progreso", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
-      jade: { estado: "cola", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
-      onice: { estado: "cola", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
-      diamante: { estado: "cola", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
-      zafiro: { estado: "cola", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
-      granate: { estado: "cola", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 }
+      rubi: { estado: "en_progreso", claridad: "ninguna", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
+      jade: { estado: "cola", claridad: "ninguna", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
+      onice: { estado: "cola", claridad: "ninguna", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
+      diamante: { estado: "cola", claridad: "ninguna", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
+      zafiro: { estado: "cola", claridad: "ninguna", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 },
+      granate: { estado: "cola", claridad: "ninguna", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 }
     }
   },
   consumibles: {
@@ -274,6 +274,8 @@ const DEFAULT_STATE = {
     saldoYangKK: 0, // 1 Won = 100kk
     metaNombre: "Meta de Equipo Principal",
     metaCostoWons: 10,
+    precioCompraRubiWons: 4.5,
+    precioCompraRubiKK: 0,
     alquimiaSecundaria: {
       rubi: { nombre: "Rubí Antiguo", stock: 0, ultimoPrecioWons: 0, ultimoPrecioKK: 0 },
       diamante: { nombre: "Diamante Antiguo", stock: 0, ultimoPrecioWons: 0, ultimoPrecioKK: 0 },
@@ -311,6 +313,10 @@ function loadState() {
     if (merged.finanzas?.alquimiaSecundaria && !merged.finanzas.alquimiaSecundaria.rubi) {
       merged.finanzas.alquimiaSecundaria.rubi = { nombre: "Rubí Antiguo", stock: 0, ultimoPrecioWons: 0, ultimoPrecioKK: 0 };
     }
+    if (merged.finanzas) {
+      if (merged.finanzas.precioCompraRubiWons === undefined) merged.finanzas.precioCompraRubiWons = 4.5;
+      if (merged.finanzas.precioCompraRubiKK === undefined) merged.finanzas.precioCompraRubiKK = 0;
+    }
     // Asegurar objetivos y sincronizar con los 23 hitos del plan maestro
     if (!merged.objetivos || !Array.isArray(merged.objetivos) || merged.objetivos.length === 0) {
       merged.objetivos = JSON.parse(JSON.stringify(HITOS_PLAN_MAESTRO));
@@ -335,11 +341,13 @@ function loadState() {
         });
       }
     }
-    // Asegurar propiedades de claridad y nivel en los slots de la rueda DSS
+    // Asegurar propiedades de stock en los slots de la rueda DSS
+    // (claridad/nivel ya no se usan para tracking — solo se preservan si existen en datos antiguos)
     if (merged.ruedaDSS && merged.ruedaDSS.slots) {
       Object.keys(merged.ruedaDSS.slots).forEach(k => {
-        if (!merged.ruedaDSS.slots[k].claridad) merged.ruedaDSS.slots[k].claridad = "mate";
-        if (merged.ruedaDSS.slots[k].nivel === undefined) merged.ruedaDSS.slots[k].nivel = 0;
+        if (merged.ruedaDSS.slots[k].stockAntiguas === undefined) merged.ruedaDSS.slots[k].stockAntiguas = 0;
+        if (merged.ruedaDSS.slots[k].stockLegendarias === undefined) merged.ruedaDSS.slots[k].stockLegendarias = 0;
+        if (merged.ruedaDSS.slots[k].stockMiticas === undefined) merged.ruedaDSS.slots[k].stockMiticas = 0;
       });
     }
     return merged;
@@ -596,6 +604,70 @@ function guardarEditorMetaFinanzas() {
   STATE.finanzas.metaCostoWons = c;
   saveState();
   cerrarModal("modalEditarMeta");
+}
+
+function abrirModalPrecioCompraRubi() {
+  const pW = STATE.finanzas.precioCompraRubiWons !== undefined ? STATE.finanzas.precioCompraRubiWons : 4.5;
+  const pKK = STATE.finanzas.precioCompraRubiKK !== undefined ? STATE.finanzas.precioCompraRubiKK : 0;
+  const inpW = document.getElementById("inpCompraRubiWons");
+  const inpKK = document.getElementById("inpCompraRubiKK");
+  if (inpW) inpW.value = pW;
+  if (inpKK) inpKK.value = pKK;
+  const m = document.getElementById("modalPrecioCompraRubi");
+  if (m) m.classList.add("active");
+}
+
+function guardarPrecioCompraRubi() {
+  const wons = parseFloat(document.getElementById("inpCompraRubiWons")?.value) || 0;
+  const kk = parseFloat(document.getElementById("inpCompraRubiKK")?.value) || 0;
+  if (wons === 0 && kk === 0) {
+    alert("Ingresa un precio de compra válido.");
+    return;
+  }
+  STATE.finanzas.precioCompraRubiWons = wons;
+  STATE.finanzas.precioCompraRubiKK = kk;
+  saveState();
+  renderFinanzas();
+  cerrarModal("modalPrecioCompraRubi");
+}
+
+function comprarRubiAntiguoMercadoRapido() {
+  const costoWons = STATE.finanzas.precioCompraRubiWons !== undefined ? STATE.finanzas.precioCompraRubiWons : 4.5;
+  const costoKK = STATE.finanzas.precioCompraRubiKK !== undefined ? STATE.finanzas.precioCompraRubiKK : 0;
+  const costoTotalKK = (costoWons * 100) + costoKK;
+
+  const saldoActualTotalKK = (STATE.finanzas.saldoWons * 100) + STATE.finanzas.saldoYangKK;
+
+  if (saldoActualTotalKK < costoTotalKK) {
+    const faltanKK = costoTotalKK - saldoActualTotalKK;
+    const faltanW = (faltanKK / 100).toFixed(1);
+    alert(`⚠️ Fondos insuficientes para comprar 1 Rubí Antiguo.\n\nPrecio: ${costoWons}W ${costoKK > 0 ? costoKK + 'kk' : ''}\nTu saldo: ${STATE.finanzas.saldoWons}W y ${STATE.finanzas.saldoYangKK}kk\nTe faltan: ~${faltanW} Wons.\n\n¡Vende más piedras secundarias en el mercado para acumular fondos!`);
+    return;
+  }
+
+  // Restar costo
+  const nuevoSaldoKK = saldoActualTotalKK - costoTotalKK;
+  STATE.finanzas.saldoWons = Math.floor(nuevoSaldoKK / 100);
+  STATE.finanzas.saldoYangKK = Math.round(nuevoSaldoKK % 100);
+
+  // Sumar +1 Rubí Antiguo a la Rueda DSS
+  if (!STATE.ruedaDSS.slots.rubi) {
+    STATE.ruedaDSS.slots.rubi = { estado: "en_progreso", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 };
+  }
+  STATE.ruedaDSS.slots.rubi.stockAntiguas = (STATE.ruedaDSS.slots.rubi.stockAntiguas || 0) + 1;
+
+  vibrar(60);
+  saveState();
+  renderAll();
+
+  const stockNuevo = STATE.ruedaDSS.slots.rubi.stockAntiguas;
+  alert(`🎉 ¡Rubí Antiguo Comprado con éxito!\n\nSe descontaron ${costoWons} Wons ${costoKK > 0 ? '+ ' + costoKK + 'kk' : ''} de tus fondos.\nTu stock de Rubí Antiguo en almacén sube a: ${stockNuevo} piedras.\n\n¡Estrategia de reinversión en marcha!`);
+}
+
+function vibrar(ms = 40) {
+  if (typeof navigator !== "undefined" && navigator.vibrate) {
+    try { navigator.vibrate(ms); } catch (e) {}
+  }
 }
 
 // ==========================================
@@ -1184,25 +1256,26 @@ const GEMA_INFO_MAP = {
 function renderRuedaDSS() {
   const gemaKey = STATE.ruedaDSS.gemaActiva || "rubi";
   const slots = STATE.ruedaDSS.slots;
-  const gemaData = slots[gemaKey] || { estado: "en_progreso", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 };
+  const gemaData = slots[gemaKey] || { stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 };
 
   // 1. Renderizar Rueda Visual de los 6 Slots
   const wheelGrid = document.getElementById("dssWheelGrid");
   if (wheelGrid) {
     wheelGrid.innerHTML = Object.keys(GEMA_INFO_MAP).map(k => {
       const g = GEMA_INFO_MAP[k];
-      const slot = slots[k] || { claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 };
+      const slot = slots[k] || { stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 };
       const esActiva = k === gemaKey;
-      const claridadCap = (slot.claridad || "mate").charAt(0).toUpperCase() + (slot.claridad || "mate").slice(1);
-      const nivelTxt = slot.nivel !== undefined ? `+${slot.nivel}` : "+0";
+      const totalPiedras = (slot.stockAntiguas || 0) + (slot.stockLegendarias || 0) + (slot.stockMiticas || 0);
+      const subtitulo = totalPiedras > 0
+        ? `A:${slot.stockAntiguas || 0} L:${slot.stockLegendarias || 0} M:${slot.stockMiticas || 0}`
+        : "Sin stock";
 
       return `
         <div onclick="cambiarGemaActiva('${k}')" style="background:${esActiva ? 'rgba(212,160,23,0.15)' : 'var(--bg-card)'}; border:2px solid ${esActiva ? 'var(--gold)' : 'var(--border-card)'}; border-radius:var(--radius-sm); padding:8px 6px; text-align:center; cursor:pointer; transition:all 0.2s; box-shadow:${esActiva ? '0 0 12px var(--gold-glow)' : 'none'};">
           <div style="font-size:1.3rem;">${g.icono}</div>
           <div style="font-size:0.75rem; font-weight:800; color:${esActiva ? 'var(--gold)' : 'var(--text-main)'}; margin-top:2px;">${g.nombre}</div>
-          <div style="font-size:0.65rem; color:${slot.claridad === 'excelente' ? 'var(--green)' : 'var(--text-muted)'}; font-weight:700;">${claridadCap} ${nivelTxt}</div>
-          <div style="font-size:0.62rem; color:var(--text-dim); margin-top:4px; font-family:monospace;">
-            A:${slot.stockAntiguas || 0} L:${slot.stockLegendarias || 0} M:${slot.stockMiticas || 0}
+          <div style="font-size:0.62rem; color:${totalPiedras > 0 ? 'var(--text-muted)' : 'var(--text-dim)'}; margin-top:4px; font-family:monospace;">
+            ${subtitulo}
           </div>
         </div>
       `;
@@ -1214,19 +1287,25 @@ function renderRuedaDSS() {
   const titleEl = document.getElementById("activeGemaTitle");
   if (titleEl) titleEl.textContent = `${infoActiva.icono} ${infoActiva.nombre} (${infoActiva.stat})`;
 
+  // Badge muestra totales del almacén de la gema activa
   const badgeEl = document.getElementById("activeGemaBadge");
   if (badgeEl) {
-    const cCap = (gemaData.claridad || "mate").toUpperCase();
-    badgeEl.textContent = `${cCap} +${gemaData.nivel || 0}`;
-    badgeEl.style.color = gemaData.claridad === 'excelente' ? 'var(--green)' : 'var(--gold)';
-    badgeEl.style.borderColor = gemaData.claridad === 'excelente' ? 'var(--green)' : 'var(--gold)';
+    const ant = gemaData.stockAntiguas || 0;
+    const leg = gemaData.stockLegendarias || 0;
+    const mit = gemaData.stockMiticas || 0;
+    const totalPiedras = ant + leg + mit;
+    if (totalPiedras === 0) {
+      badgeEl.textContent = "Almacén";
+      badgeEl.style.color = "var(--text-muted)";
+      badgeEl.style.borderColor = "var(--border-card)";
+      badgeEl.style.background = "rgba(255,255,255,0.04)";
+    } else {
+      badgeEl.textContent = `A:${ant} L:${leg} M:${mit}`;
+      badgeEl.style.color = "var(--gold)";
+      badgeEl.style.borderColor = "var(--gold)";
+      badgeEl.style.background = "rgba(212,160,23,0.15)";
+    }
   }
-
-  const selClaridad = document.getElementById("editGemaClaridad");
-  if (selClaridad) selClaridad.value = gemaData.claridad || "mate";
-
-  const selNivel = document.getElementById("editGemaNivel");
-  if (selNivel) selNivel.value = gemaData.nivel !== undefined ? gemaData.nivel : 0;
 
   const stAnt = document.getElementById("stockAntiguas");
   if (stAnt) stAnt.textContent = gemaData.stockAntiguas || 0;
@@ -1282,19 +1361,6 @@ function cambiarStockGema(tipo, delta) {
   saveState();
 }
 
-function actualizarClaridadGema(val) {
-  const gemaKey = STATE.ruedaDSS.gemaActiva || "rubi";
-  if (!STATE.ruedaDSS.slots[gemaKey]) return;
-  STATE.ruedaDSS.slots[gemaKey].claridad = val;
-  saveState();
-}
-
-function actualizarNivelGema(val) {
-  const gemaKey = STATE.ruedaDSS.gemaActiva || "rubi";
-  if (!STATE.ruedaDSS.slots[gemaKey]) return;
-  STATE.ruedaDSS.slots[gemaKey].nivel = parseInt(val) || 0;
-  saveState();
-}
 
 function renderFinanzas() {
   const elWons = document.getElementById("saldoWons");
@@ -1314,34 +1380,67 @@ function renderFinanzas() {
   if (elMetaStat) elMetaStat.textContent = `${STATE.finanzas.saldoWons} Wons y ${STATE.finanzas.saldoYangKK}kk / ${metaW} Wons (${pct}%)`;
 
   const tbody = document.getElementById("tablaAlquimiaSecundaria");
-  if (!tbody) return;
+  if (tbody) {
+    const sec = STATE.finanzas.alquimiaSecundaria || {};
+    tbody.innerHTML = Object.keys(sec).map(k => {
+      const item = sec[k];
+      const precioTxt = item.ultimoPrecioWons > 0 && item.ultimoPrecioKK > 0
+        ? `${item.ultimoPrecioWons}W + ${item.ultimoPrecioKK}kk`
+        : (item.ultimoPrecioWons > 0 ? `${item.ultimoPrecioWons} Wons` : (item.ultimoPrecioKK > 0 ? `${item.ultimoPrecioKK}kk Yang` : "Sin cotizar"));
 
-  const sec = STATE.finanzas.alquimiaSecundaria || {};
-  tbody.innerHTML = Object.keys(sec).map(k => {
-    const item = sec[k];
-    const precioTxt = item.ultimoPrecioWons > 0 && item.ultimoPrecioKK > 0
-      ? `${item.ultimoPrecioWons}W + ${item.ultimoPrecioKK}kk`
-      : (item.ultimoPrecioWons > 0 ? `${item.ultimoPrecioWons} Wons` : (item.ultimoPrecioKK > 0 ? `${item.ultimoPrecioKK}kk Yang` : "Sin cotizar"));
+      return `
+        <tr>
+          <td><strong>${item.nombre}</strong></td>
+          <td>
+            <div style="display:inline-flex; align-items:center; gap:6px;">
+              <button class="btn-counter" onclick="cambiarStockAlquimiaSec('${k}', -1)">-</button>
+              <span style="min-width:24px; text-align:center; font-weight:800; font-size:0.95rem;">${item.stock}</span>
+              <button class="btn-counter" onclick="cambiarStockAlquimiaSec('${k}', 1)">+</button>
+            </div>
+          </td>
+          <td style="color: var(--gold); font-size:0.8rem;">${precioTxt}</td>
+          <td>
+            <button class="btn-complete done" onclick="abrirModalVentaAlquimia('${k}')" style="padding: 6px 12px; font-size: 0.78rem;">
+              Vender ➔
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
 
-    return `
-      <tr>
-        <td><strong>${item.nombre}</strong></td>
-        <td>
-          <div style="display:inline-flex; align-items:center; gap:4px;">
-            <button class="btn-icon" style="width:20px; height:20px; font-size:0.75rem;" onclick="cambiarStockAlquimiaSec('${k}', -1)">-</button>
-            <span style="min-width:18px; text-align:center; font-weight:700;">${item.stock}</span>
-            <button class="btn-icon" style="width:20px; height:20px; font-size:0.75rem;" onclick="cambiarStockAlquimiaSec('${k}', 1)">+</button>
-          </div>
-        </td>
-        <td style="color: var(--gold); font-size:0.8rem;">${precioTxt}</td>
-        <td>
-          <button class="btn-complete done" onclick="abrirModalVentaAlquimia('${k}')" style="padding: 4px 10px; font-size: 0.75rem;">
-            Vender ➔
-          </button>
-        </td>
-      </tr>
+  // Panel de Arbitraje / Reinversión en Rubíes Antiguos
+  const panelArb = document.getElementById("panelArbitrajeRubi");
+  const lblPrecio = document.getElementById("lblPrecioCompraRubi");
+  if (panelArb) {
+    const cWons = STATE.finanzas.precioCompraRubiWons !== undefined ? STATE.finanzas.precioCompraRubiWons : 4.5;
+    const cKK = STATE.finanzas.precioCompraRubiKK !== undefined ? STATE.finanzas.precioCompraRubiKK : 0;
+    const precioTxt = `${cWons}W${cKK > 0 ? ' + ' + cKK + 'kk' : ''}`;
+    if (lblPrecio) lblPrecio.textContent = precioTxt;
+
+    const saldoTotalKK = (STATE.finanzas.saldoWons * 100) + (STATE.finanzas.saldoYangKK || 0);
+    const costoUnitarioKK = (cWons * 100) + cKK;
+    const rubisComprables = costoUnitarioKK > 0 ? Math.floor(saldoTotalKK / costoUnitarioKK) : 0;
+    const rubisStock = STATE.ruedaDSS?.slots?.rubi?.stockAntiguas || 0;
+
+    panelArb.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); padding:8px 10px; border-radius:var(--radius-sm); border:1px solid rgba(231,76,60,0.25);">
+        <div>
+          <span style="color:var(--text-muted); font-size:0.75rem;">Cotización compra:</span>
+          <strong style="color:var(--gold); margin-left:4px;">${precioTxt}</strong>
+        </div>
+        <div>
+          <span style="color:var(--text-muted); font-size:0.75rem;">Poder de compra:</span>
+          <strong style="color:${rubisComprables > 0 ? 'var(--green)' : 'var(--text-dim)'}; margin-left:4px;">
+            ${rubisComprables} Rubí(es)
+          </strong>
+        </div>
+      </div>
+      <div style="font-size:0.73rem; color:var(--text-muted); margin-top:5px; text-align:right;">
+        Stock en almacén: <strong style="color:var(--ruby);">${rubisStock} Rubí(es) Antiguo(s)</strong>
+      </div>
     `;
-  }).join('');
+  }
 }
 
 function cambiarStockAlquimiaSec(key, delta) {
@@ -1659,21 +1758,6 @@ function restaurarDesdeCodigoTexto() {
     } catch (e) {
       alert("❌ Código inválido.");
     }
-  }
-}
-
-function restablecerTodosLosDatos() {
-  const confirmacion = confirm("⚠️ ¿Estás seguro de que deseas BORRAR TODOS los datos?\n\nEsta acción reiniciará tu progreso de cors, alquimia, objetivos y finanzas a cero, dejando la aplicación completamente limpia como recién instalada.");
-  if (!confirmacion) return;
-
-  localStorage.removeItem("naaytracker_state");
-  STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
-  saveState();
-  renderAll();
-  cerrarModal("modalAjustes");
-  alert("🧹 Todos los datos han sido borrados. La aplicación está completamente limpia.");
-  if (typeof window !== "undefined" && window.location) {
-    window.location.reload();
   }
 }
 

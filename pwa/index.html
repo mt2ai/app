@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>NaayTracker — Metin2 Companion</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="stylesheet" href="./styles.css">
-  <meta name="theme-color" content="#d4a017">
+  <meta name="theme-color" content="#0c0d14">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="NaayTracker">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230c0d14'/><polygon points='50,15 85,35 85,75 50,92 15,75 15,35' fill='%23c0392b' stroke='%23d4a017' stroke-width='5'/><circle cx='50' cy='52' r='14' fill='%23ffd700'/></svg>">
 </head>
 <body>
 
@@ -56,17 +59,17 @@
         </div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
           <div style="background: var(--bg-input); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
-            <div>🧤 Guantes (2h): <strong id="dashGuantes" style="color: var(--green);">4</strong></div>
+            <div>🧤 Guantes: <strong id="dashGuantes" style="color: var(--green);">4</strong></div>
             <div style="display: flex; gap: 4px;">
-              <button class="btn-icon" style="width:22px; height:22px; font-size:0.75rem;" onclick="cambiarConsumible('guantesLadron', -1)">-</button>
-              <button class="btn-icon" style="width:22px; height:22px; font-size:0.75rem;" onclick="cambiarConsumible('guantesLadron', 1)">+</button>
+              <button class="btn-counter" onclick="cambiarConsumible('guantesLadron', -1)">-</button>
+              <button class="btn-counter" onclick="cambiarConsumible('guantesLadron', 1)">+</button>
             </div>
           </div>
           <div style="background: var(--bg-input); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 0.82rem; display: flex; justify-content: space-between; align-items: center;">
-            <div>🍃 Alubias: <strong id="dashAlubias" style="color: var(--gold);">28 / 60</strong></div>
+            <div>🍃 Alubias: <strong id="dashAlubias" style="color: var(--gold);">28/60</strong></div>
             <div style="display: flex; gap: 4px;">
-              <button class="btn-icon" style="width:22px; height:22px; font-size:0.75rem;" onclick="cambiarConsumible('alubiasVerdes', -1)">-</button>
-              <button class="btn-icon" style="width:22px; height:22px; font-size:0.75rem;" onclick="cambiarConsumible('alubiasVerdes', 1)">+</button>
+              <button class="btn-counter" onclick="cambiarConsumible('alubiasVerdes', -1)">-</button>
+              <button class="btn-counter" onclick="cambiarConsumible('alubiasVerdes', 1)">+</button>
             </div>
           </div>
         </div>
@@ -103,72 +106,52 @@
     <section id="view-dss" class="view-section">
       <div class="card">
         <div class="card-title">
-          <span>🎡 Rueda de Alquimia Interactiva (6 Gemas)</span>
-          <span style="font-size:0.75rem; color:var(--gold); font-weight:700;">Toca una gema para gestionarla</span>
+          <span>📦 Almacén de Gemas por Color</span>
+          <span style="font-size:0.75rem; color:var(--gold); font-weight:700;">Toca una gema para ver su stock</span>
         </div>
+        <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:12px; line-height:1.4;">
+          Registra aquí cuántas piedras tienes guardadas en el almacén. La Calculadora de Luz Verde las usa para orientarte en cada refinado.
+        </p>
 
         <!-- RUEDA VISUAL DE LOS 6 SLOTS -->
         <div id="dssWheelGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;">
           <!-- Renderizado por JS -->
         </div>
 
-        <!-- PANEL DE LA GEMA ACTIVA SELECCIONADA -->
+        <!-- PANEL DE STOCK DE LA GEMA SELECCIONADA (lo único que importa) -->
         <div class="card" style="background: var(--bg-input); border-color: rgba(212, 160, 23, 0.4); margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <strong id="activeGemaTitle" style="color: var(--gold); font-size: 1rem;">🔴 Rubí</strong>
-            <span id="activeGemaBadge" class="brand-badge">Excelente +6</span>
+            <span id="activeGemaBadge" class="brand-badge" style="font-size:0.72rem;">Almacén</span>
           </div>
 
-          <!-- AJUSTES DE CLARIDAD Y NIVEL DE LA GEMA -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-            <div>
-              <label style="font-size: 0.72rem; color: var(--text-muted);">Claridad Actual:</label>
-              <select id="editGemaClaridad" onchange="actualizarClaridadGema(this.value)" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-card); color: #fff; padding: 6px; border-radius: var(--radius-sm); font-size: 0.8rem; margin-top: 3px;">
-                <option value="mate">Mate</option>
-                <option value="claro">Claro</option>
-                <option value="limpido">Límpido</option>
-                <option value="brillante">Brillante</option>
-                <option value="excelente">Excelente</option>
-              </select>
-            </div>
-            <div>
-              <label style="font-size: 0.72rem; color: var(--text-muted);">Nivel (+0 a +6):</label>
-              <select id="editGemaNivel" onchange="actualizarNivelGema(this.value)" style="width: 100%; background: var(--bg-card); border: 1px solid var(--border-card); color: #fff; padding: 6px; border-radius: var(--radius-sm); font-size: 0.8rem; margin-top: 3px;">
-                <option value="0">+0</option>
-                <option value="1">+1</option>
-                <option value="2">+2</option>
-                <option value="3">+3</option>
-                <option value="4">+4</option>
-                <option value="5">+5</option>
-                <option value="6">+6</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- STOCK DE PIEDRAS EN RESERVA -->
+          <!-- CONTADORES DE STOCK: Antiguas, Legendarias, Míticas -->
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;">
-            <div style="background: var(--bg-card); padding: 8px; border-radius: var(--radius-sm);">
-              <span style="font-size: 0.7rem; color: var(--text-muted);">Antiguas</span>
-              <div style="font-size: 1.2rem; font-weight: 800; color: var(--gold);" id="stockAntiguas">12</div>
-              <div style="display: flex; justify-content: center; gap: 4px; margin-top: 4px;">
-                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockAntiguas', -1)">-</button>
-                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockAntiguas', 1)">+</button>
+            <div style="background: var(--bg-card); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid rgba(245,176,65,0.2);">
+              <span style="font-size: 0.7rem; color: var(--gold); font-weight: 700; text-transform: uppercase;">Antiguas</span>
+              <div style="font-size: 1.4rem; font-weight: 900; color: var(--gold); margin: 4px 0;" id="stockAntiguas">0</div>
+              <div style="font-size: 0.62rem; color: var(--text-dim); margin-bottom: 6px;">~140 Cors c/u</div>
+              <div style="display: flex; justify-content: center; gap: 6px;">
+                <button class="btn-counter" onclick="cambiarStockGema('stockAntiguas', -1)">−</button>
+                <button class="btn-counter" onclick="cambiarStockGema('stockAntiguas', 1)">+</button>
               </div>
             </div>
-            <div style="background: var(--bg-card); padding: 8px; border-radius: var(--radius-sm);">
-              <span style="font-size: 0.7rem; color: var(--text-muted);">Legendarias</span>
-              <div style="font-size: 1.2rem; font-weight: 800; color: var(--ruby);" id="stockLegendarias">9</div>
-              <div style="display: flex; justify-content: center; gap: 4px; margin-top: 4px;">
-                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockLegendarias', -1)">-</button>
-                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockLegendarias', 1)">+</button>
+            <div style="background: var(--bg-card); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid rgba(231,76,60,0.2);">
+              <span style="font-size: 0.7rem; color: var(--ruby); font-weight: 700; text-transform: uppercase;">Legendarias</span>
+              <div style="font-size: 1.4rem; font-weight: 900; color: var(--ruby); margin: 4px 0;" id="stockLegendarias">0</div>
+              <div style="font-size: 0.62rem; color: var(--text-dim); margin-bottom: 6px;">~2 Antiguas c/u</div>
+              <div style="display: flex; justify-content: center; gap: 6px;">
+                <button class="btn-counter" onclick="cambiarStockGema('stockLegendarias', -1)">−</button>
+                <button class="btn-counter" onclick="cambiarStockGema('stockLegendarias', 1)">+</button>
               </div>
             </div>
-            <div style="background: var(--bg-card); padding: 8px; border-radius: var(--radius-sm);">
-              <span style="font-size: 0.7rem; color: var(--text-muted);">Míticas</span>
-              <div style="font-size: 1.2rem; font-weight: 800; color: var(--green);" id="stockMiticas">4</div>
-              <div style="display: flex; justify-content: center; gap: 4px; margin-top: 4px;">
-                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockMiticas', -1)">-</button>
-                <button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem;" onclick="cambiarStockGema('stockMiticas', 1)">+</button>
+            <div style="background: var(--bg-card); padding: 10px 8px; border-radius: var(--radius-sm); border: 1px solid rgba(46,204,113,0.2);">
+              <span style="font-size: 0.7rem; color: var(--green); font-weight: 700; text-transform: uppercase;">Míticas</span>
+              <div style="font-size: 1.4rem; font-weight: 900; color: var(--green); margin: 4px 0;" id="stockMiticas">0</div>
+              <div style="font-size: 0.62rem; color: var(--text-dim); margin-bottom: 6px;">~2 Legendarias c/u</div>
+              <div style="display: flex; justify-content: center; gap: 6px;">
+                <button class="btn-counter" onclick="cambiarStockGema('stockMiticas', -1)">−</button>
+                <button class="btn-counter" onclick="cambiarStockGema('stockMiticas', 1)">+</button>
               </div>
             </div>
           </div>
@@ -314,6 +297,23 @@
             <!-- Renderizado por JS -->
           </tbody>
         </table>
+
+        <!-- ARBITRAJE DE ALQUIMIA: REINVERSIÓN EN RUBÍES ANTIGUOS -->
+        <div style="background: linear-gradient(135deg, rgba(231,76,60,0.12), rgba(212,160,23,0.08)); border: 1px solid rgba(231,76,60,0.35); border-radius: var(--radius-sm); padding: 12px; margin-top: 14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="color:var(--ruby); font-size:0.85rem;">🔄 Reinversión: Comprar Rubí Antiguo Barato</strong>
+            <button class="btn-icon" style="width:26px; height:26px; font-size:0.75rem;" onclick="abrirModalPrecioCompraRubi()" title="Ajustar precio de compra de Rubí">⚙️</button>
+          </div>
+          <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.4; margin-bottom:8px;">
+            💡 <em>Estrategia Maestra:</em> Vender secundarias (Jade, Ónice, etc.) para reinvertir tus Wons comprando Rubíes Antiguos a buen precio en el bazar. Acelera al doble el ritmo de tus Cors.
+          </p>
+          <div id="panelArbitrajeRubi" style="font-size:0.8rem; margin-bottom:8px;">
+            <!-- Renderizado por JS: Poder adquisitivo y precio actual -->
+          </div>
+          <button class="btn-complete done" onclick="comprarRubiAntiguoMercadoRapido()" style="width:100%; justify-content:center; padding:10px; font-size:0.82rem; font-weight:800; background:linear-gradient(135deg, rgba(231,76,60,0.25), rgba(212,160,23,0.2)); border:1px solid var(--ruby); color:#ff7675;">
+            🛒 Comprar 1 Rubí Antiguo (-<span id="lblPrecioCompraRubi">4.5W</span> ➔ +1 a Rueda DSS)
+          </button>
+        </div>
       </div>
     </section>
 
@@ -489,6 +489,28 @@
         <input type="number" id="inpMetaCosto" min="1" step="0.5" value="35" style="width:100%;background:var(--bg-input);border:1px solid var(--border-card);color:#fff;padding:8px;border-radius:var(--radius-sm);margin-top:4px;">
       </div>
       <button class="btn-primary" onclick="guardarEditorMetaFinanzas()">💾 Guardar Meta</button>
+    </div>
+  </div>
+
+  <!-- MODAL: AJUSTAR PRECIO DE COMPRA DE RUBÍ ANTIGUO -->
+  <div id="modalPrecioCompraRubi" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 style="color:var(--ruby);">🛒 Cotización de Compra de Rubí Antiguo</h3>
+        <button class="modal-close" onclick="cerrarModal('modalPrecioCompraRubi')">✕</button>
+      </div>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:12px;">
+        Define el precio al que sueles encontrar ofertas de Rubíes Antiguos en el bazar de tu servidor (para calcular tu poder de compra):
+      </p>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.8rem;color:var(--text-muted);">Precio en Wons:</label>
+        <input type="number" id="inpCompraRubiWons" min="0" step="0.5" value="4.5" style="width:100%;background:var(--bg-input);border:1px solid var(--border-card);color:#fff;padding:8px;border-radius:var(--radius-sm);margin-top:4px;">
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.8rem;color:var(--text-muted);">Precio en KK Yang (opcional):</label>
+        <input type="number" id="inpCompraRubiKK" min="0" value="0" style="width:100%;background:var(--bg-input);border:1px solid var(--border-card);color:#fff;padding:8px;border-radius:var(--radius-sm);margin-top:4px;">
+      </div>
+      <button class="btn-primary" onclick="guardarPrecioCompraRubi()">💾 Guardar Cotización</button>
     </div>
   </div>
 

@@ -39,15 +39,51 @@ body {
   color: var(--text-main);
   font-family: var(--font-main);
   min-height: 100vh;
-  padding-bottom: 90px; /* Espacio para barra de navegación inferior en móviles */
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-bottom: calc(96px + env(safe-area-inset-bottom));
+  padding-left: max(12px, env(safe-area-inset-left));
+  padding-right: max(12px, env(safe-area-inset-right));
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Evitar auto-zoom en iOS al enfocar inputs */
+input, select, textarea {
+  font-size: 16px !important;
+}
+
+/* Botón de contador interactivo optimizado para dedo/móvil */
+.btn-counter {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  color: var(--text-main);
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  transition: all 0.15s ease;
+}
+
+.btn-counter:active {
+  background: rgba(212, 160, 23, 0.25);
+  border-color: var(--gold);
+  transform: scale(0.92);
 }
 
 /* Contenedor principal responsive */
 .app-container {
   max-width: 760px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 0;
 }
 
 /* Cabecera Principal */
@@ -109,19 +145,21 @@ body {
   transform: translateY(-1px);
 }
 
-/* Barra de Navegación Móvil (Inferior Fija) */
+/* Barra de Navegación Móvil (Inferior Fija con Safe Area) */
 .bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: rgba(21, 23, 36, 0.95);
-  backdrop-filter: blur(12px);
+  background: rgba(18, 20, 32, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   border-top: 1px solid var(--border-card);
   display: flex;
   justify-content: space-around;
-  padding: 8px 4px;
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px)) 4px;
   z-index: 100;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .nav-item {
@@ -131,11 +169,13 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   font-size: 0.68rem;
   cursor: pointer;
   flex: 1;
-  padding: 4px 0;
+  padding: 6px 0;
+  min-height: 48px;
+  touch-action: manipulation;
   transition: all 0.2s;
 }
 
