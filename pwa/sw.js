@@ -1,5 +1,5 @@
 // Service Worker para Mt2App (Offline-First Ultra Privado)
-const CACHE_NAME = 'mt2app-v40';
+const CACHE_NAME = 'mt2app-v42';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

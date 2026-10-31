@@ -1,5 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <polygon points="50,5 90,30 90,75 50,95 10,75 10,30" fill="#c0392b" stroke="#d4a017" stroke-width="6"/>
-  <circle cx="50" cy="50" r="18" fill="#ffd700"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="36%" r="72%">
+      <stop offset="0" stop-color="#1b1f2b"/>
+      <stop offset="0.62" stop-color="#0c0e14"/>
+      <stop offset="1" stop-color="#07080b"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8dc82"/>
+      <stop offset="0.42" stop-color="#d4a017"/>
+      <stop offset="1" stop-color="#8a5d08"/>
+    </linearGradient>
+    <linearGradient id="goldSoft" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe9a3"/>
+      <stop offset="1" stop-color="#c08b10"/>
+    </linearGradient>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
 
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="171" fill="none" stroke="#d4a017" stroke-opacity="0.16" stroke-width="2"/>
+  <circle cx="256" cy="256" r="151" fill="#101219" stroke="#252932" stroke-width="2"/>
+  <circle cx="256" cy="264" r="106" fill="#d4a017" opacity="0.12" filter="url(#glow)"/>
+
+  <!-- Piedra dragón facetada -->
+  <path d="M256 78 L398 160 L398 324 L256 406 L114 324 L114 160 Z"
+        fill="url(#gold)" stroke="#f7e39a" stroke-width="4" stroke-linejoin="round"/>
+
+  <!-- Facetas -->
+  <path d="M256 78 L398 160 L256 256 Z" fill="#ffe8a1" opacity="0.62"/>
+  <path d="M114 160 L256 256 L114 324 Z" fill="#8a5d08" opacity="0.52"/>
+  <path d="M398 160 L398 324 L256 256 Z" fill="#c08b10" opacity="0.42"/>
+  <path d="M114 324 L256 256 L256 406 Z" fill="#b47c09" opacity="0.5"/>
+  <path d="M398 324 L256 256 L256 406 Z" fill="#6f4b06" opacity="0.42"/>
+  <path d="M256 78 L256 406" stroke="#6f4b06" stroke-opacity="0.55" stroke-width="3"/>
+  <path d="M114 160 L256 256 L398 160" fill="none" stroke="#fff0b0" stroke-opacity="0.45" stroke-width="3"/>
+  <path d="M114 324 L256 256 L398 324" fill="none" stroke="#6f4b06" stroke-opacity="0.45" stroke-width="3"/>
+
+  <!-- Brillo interior -->
+  <circle cx="256" cy="256" r="42" fill="#fff4c7" opacity="0.22"/>
+  <circle cx="256" cy="256" r="16" fill="#fffbe8" opacity="0.82"/>
+  <circle cx="152" cy="124" r="4" fill="#fff0b0" opacity="0.8"/>
+  <circle cx="368" cy="356" r="3" fill="#fff0b0" opacity="0.55"/>
+</svg>
