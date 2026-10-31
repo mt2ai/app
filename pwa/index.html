@@ -52,7 +52,7 @@
       <div class="card">
         <div class="view-header-strip">
           <div class="view-headline"><span class="section-icon" data-icon="bolt"></span> Panel de Control</div>
-          <span class="brand-badge" id="dashCorsBadge">Hoy: 0/20 Cors</span>
+          <span class="brand-badge" id="dashCorsBadge">Ciclo: 0/20 Cors</span>
         </div>
 
         <!-- SELECTOR DE ZOOM CUÁDRUPLE -->
@@ -130,14 +130,20 @@
         <div class="view-header-strip">
           <div>
             <div class="view-headline"><span class="section-icon" data-icon="users"></span> 4 Fragmenteros</div>
-            <span class="view-subhead">20 Cors diarios (5 c/u)</span>
+            <span class="view-subhead">20 Cors · reset 18:00</span>
           </div>
-          <!-- TEMPORIZADOR COMPACTO EMBEBIDO ARRIBA -->
-          <div class="timer-pill">
-            <span class="timer-digits-sm" id="sessionTimerDigits">12:00</span>
-            <button class="btn-mini done" id="btnTimerToggle" onclick="toggleSessionTimer()" title="Iniciar / Pausar" aria-label="Iniciar o pausar temporizador"><span data-icon="play"></span></button>
-            <button class="btn-mini" onclick="resetSessionTimer(12)" title="Reiniciar a 12m" aria-label="Reiniciar temporizador">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"></path><path d="M3 4v5h5"></path></svg>
+        </div>
+
+        <!-- CRONÓMETRO GENERAL -->
+        <div class="stopwatch-panel">
+          <div class="stopwatch-display" id="stopwatchDigits">00:00.0</div>
+          <div class="stopwatch-hint" id="stopwatchHint">Pulsa Iniciar y para con el fragmentero que termine.</div>
+          <div class="stopwatch-actions">
+            <button id="stopwatchStartBtn" class="btn-primary stopwatch-start" onclick="iniciarCronometroGeneral()">
+              <span data-icon="play"></span> Iniciar
+            </button>
+            <button class="btn-complete stopwatch-reset" onclick="resetCronometroGeneral()">
+              <span data-icon="refresh"></span> Reiniciar
             </button>
           </div>
         </div>
@@ -146,6 +152,10 @@
         <div id="farmersList">
           <!-- Renderizado por JS -->
         </div>
+      </div>
+
+      <div class="card farmers-stats-card">
+        <div id="farmersChart"></div>
       </div>
     </section>
 
@@ -169,7 +179,7 @@
               <strong id="activeGemaTitle" class="stock-title">Rubí</strong>
               <span id="activeGemaStat" class="stock-stat">Valor Ataque + Media</span>
             </div>
-            <span class="stock-hint">Stock actual</span>
+            <button class="btn-complete btn-register-stones" onclick="abrirModalRegistrarPiedras()"><span data-icon="plus"></span> Registrar</button>
           </div>
 
           <div class="stock-grid">
@@ -321,6 +331,7 @@
 
         <!-- SUB-PESTAÑA 1: PLAN MAESTRO 36 SEMANAS -->
         <div id="tabFinanzasPlan">
+          <div id="objetivoAlquimiaBox"></div>
           <div id="progresoPlanBox" style="margin-bottom: 10px;"></div>
 
           <!-- FILTRO RÁPIDO DE ETAPAS -->
@@ -343,14 +354,14 @@
           <!-- REINVERSIÓN EN RUBÍES ANTIGUOS DIRECTA -->
           <div class="arb-box">
             <div class="section-label-row">
-              <strong><span class="label-icon" data-icon="refresh"></span> Reinversión: Comprar Rubí Antiguo</strong>
+              <strong id="arbTitulo"><span class="label-icon" data-icon="refresh"></span> Reinversión</strong>
               <button class="btn-icon btn-icon-sm" onclick="abrirModalPrecioCompraRubi()" title="Ajustar precio" aria-label="Ajustar precio"><span data-icon="settings"></span></button>
             </div>
             <div id="panelArbitrajeRubi" class="arb-panel">
               <!-- Renderizado por JS -->
             </div>
-            <button class="btn-buy-rubi" onclick="comprarRubiAntiguoMercadoRapido()">
-              <span class="label-icon" data-icon="cart"></span> Comprar 1 Rubí (-<span id="lblPrecioCompraRubi">4.5W</span> → +1 a Rueda DSS)
+            <button id="arbBoton" class="btn-buy-rubi" onclick="comprarRubiAntiguoMercadoRapido()">
+              <span class="label-icon" data-icon="cart"></span> Comprar 1 Antigua
             </button>
           </div>
 
@@ -539,6 +550,103 @@
           </button>
         </div>
       </details>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR PIEDRAS MANUALMENTE -->
+  <div id="modalRegistrarPiedras" class="modal-overlay">
+    <div class="modal-card goal-modal">
+      <div class="modal-header">
+        <h3>Registrar piedras</h3>
+        <button class="modal-close" onclick="cerrarModal('modalRegistrarPiedras')" aria-label="Cerrar"><span data-icon="x"></span></button>
+      </div>
+
+      <div class="form-group">
+        <label for="regGema">Gema</label>
+        <select id="regGema"></select>
+      </div>
+
+      <div class="form-group">
+        <label for="regClase">Clase</label>
+        <select id="regClase">
+          <option value="stockAntiguas">Antiguas</option>
+          <option value="stockLegendarias">Legendarias</option>
+          <option value="stockMiticas">Míticas</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="regCantidad">Cantidad</label>
+        <input type="number" id="regCantidad" min="1" step="1" value="1">
+      </div>
+
+      <p class="manual-note">Entrada manual: la app no se conecta al juego. Registra las piedras que realmente tengas.</p>
+
+      <button class="btn-primary" onclick="guardarRegistroPiedras()">
+        <span data-icon="plus"></span> Registrar piedras
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: DEFINIR OBJETIVO DE ALQUIMIA -->
+  <div id="modalObjetivoAlquimia" class="modal-overlay">
+    <div class="modal-card goal-modal">
+      <div class="modal-header">
+        <h3>Objetivo de alquimia</h3>
+        <button class="modal-close" onclick="cerrarModal('modalObjetivoAlquimia')" aria-label="Cerrar"><span data-icon="x"></span></button>
+      </div>
+
+      <div class="form-group">
+        <label for="objGema">Gema</label>
+        <select id="objGema"></select>
+      </div>
+
+      <div class="form-group">
+        <label for="objTipo">Tipo de objetivo</label>
+        <select id="objTipo" onchange="actualizarFormularioObjetivo()"></select>
+      </div>
+
+      <div class="form-group" id="objTituloGroup" style="display: none;">
+        <label for="objTitulo">Nombre personalizado</label>
+        <input type="text" id="objTitulo" placeholder="Ej: Conseguir Rubí Mítico +6">
+      </div>
+
+      <div class="form-group">
+        <label for="objMeta">Meta (cantidad o nivel)</label>
+        <input type="number" id="objMeta" min="1" step="1" value="10">
+      </div>
+
+      <button class="btn-primary" onclick="guardarObjetivoAlquimia()">
+        <span data-icon="save"></span> Guardar objetivo
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: OBJETIVO COMPLETADO -->
+  <div id="modalObjetivoCompletado" class="modal-overlay">
+    <div class="modal-card goal-complete-modal">
+      <div class="modal-header">
+        <h3>Objetivo completado</h3>
+        <button class="modal-close" onclick="cerrarModal('modalObjetivoCompletado')" aria-label="Cerrar"><span data-icon="x"></span></button>
+      </div>
+
+      <div class="goal-complete-info">
+        <span class="goal-status done">Satisfecho</span>
+        <strong id="objetivoCompletadoTexto"></strong>
+        <p id="objetivoCompletadoSiguiente"></p>
+      </div>
+
+      <div class="goal-complete-actions">
+        <button class="btn-primary" onclick="completarObjetivo('siguiente')">
+          <span data-icon="chevronRight"></span> Siguiente objetivo
+        </button>
+        <button class="btn-complete" onclick="completarObjetivo('continuar')">
+          <span data-icon="play"></span> Continuar con este objetivo
+        </button>
+        <button class="btn-complete" onclick="completarObjetivo('cambiar')">
+          <span data-icon="edit"></span> Elegir otro objetivo
+        </button>
+      </div>
     </div>
   </div>
 

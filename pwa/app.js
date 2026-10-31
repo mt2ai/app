@@ -139,6 +139,8 @@ const SVG_ICONS = {
   smartphone: '<rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path>',
   globe: '<circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.5 3.8 5.6 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.6-3.8-9S9.5 5.5 12 3Z"></path>',
   chevronRight: '<path d="m9 5 7 7-7 7"></path>',
+  plus: '<path d="M12 5v14M5 12h14"></path>',
+  square: '<rect x="7" y="7" width="10" height="10" rx="1.5" fill="currentColor" stroke="none"></rect>',
   x: '<path d="M6 6l12 12M18 6 6 18"></path>'
 };
 
@@ -165,6 +167,25 @@ function inicioSemanaISO(d = new Date()) {
 
 function indiceDiaSemana(d = new Date()) {
   return (d.getDay() + 6) % 7; // 0 = lunes ... 6 = domingo
+}
+
+// Metin2 reinicia las tareas diarias a las 18:00 hora local.
+const HORA_RESET_JUEGO = 18;
+
+function fechaJuegoISO(d = new Date()) {
+  const copia = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (d.getHours() < HORA_RESET_JUEGO) copia.setDate(copia.getDate() - 1);
+  return fechaLocalISO(copia);
+}
+
+function indiceDiaJuego(d = new Date()) {
+  const fecha = new Date(fechaJuegoISO(d) + "T12:00:00");
+  return (fecha.getDay() + 6) % 7;
+}
+
+function inicioSemanaJuegoISO(d = new Date()) {
+  const fecha = new Date(fechaJuegoISO(d) + "T12:00:00");
+  return inicioSemanaISO(fecha);
 }
 
 /**
@@ -324,8 +345,28 @@ const HITOS_PLAN_MAESTRO = [
   { id: "p23", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Culminar la Meta de Equipo Principal con el poder del Rubí Excelente +6", completado: false, cat: "equipo", esHitoPlan: true }
 ];
 
+const OBJETIVOS_ALQUIMIA_CATALOGO = [
+  { id: "antiguas-10", titulo: "Acumular 10 Antiguas", tipo: "antiguas", meta: 10, descripcion: "Banco inicial para 5 intentos hacia Legendaria." },
+  { id: "antiguas-20", titulo: "Acumular 20 Antiguas", tipo: "antiguas", meta: 20, descripcion: "Segundo lote para una sesión de refinado más estable." },
+  { id: "antiguas-30", titulo: "Acumular 30 Antiguas", tipo: "antiguas", meta: 30, descripcion: "Lote óptimo para refinado masivo con margen de fallos." },
+  { id: "legendarias-4", titulo: "Reunir 4 Legendarias", tipo: "legendarias", meta: 4, descripcion: "Primer colchón para intentar Míticas sin quiebra." },
+  { id: "legendarias-8", titulo: "Reunir 8 Legendarias", tipo: "legendarias", meta: 8, descripcion: "Banco de 4 intentos hacia Mítica." },
+  { id: "legendarias-16", titulo: "Reunir 16 Legendarias", tipo: "legendarias", meta: 16, descripcion: "Reserva industrial para alimentar la pirámide de pureza." },
+  { id: "miticas-1", titulo: "Conseguir 1 Mítica", tipo: "miticas", meta: 1, descripcion: "Primer Rubí Mítico para equipar provisionalmente." },
+  { id: "miticas-4", titulo: "Colchón de 4 Míticas", tipo: "miticas", meta: 4, descripcion: "Mínimo seguro antes de intentar subir claridad." },
+  { id: "claridad-clara", titulo: "Alcanzar Claridad Clara", tipo: "claridad", meta: 1, descripcion: "Primer salto de pureza con Stop-Loss." },
+  { id: "claridad-limpida", titulo: "Alcanzar Claridad Límpida", tipo: "claridad", meta: 2, descripcion: "Pureza intermedia manteniendo una piedra de respaldo." },
+  { id: "claridad-brillante", titulo: "Alcanzar Claridad Brillante", tipo: "claridad", meta: 3, descripcion: "Salto crítico antes del asalto final." },
+  { id: "claridad-excelente", titulo: "Alcanzar Claridad Excelente", tipo: "claridad", meta: 4, descripcion: "Máxima pureza alcanzable en Metin2." },
+  { id: "nivel-4", titulo: "Subir la gema a +4", tipo: "nivel", meta: 4, descripcion: "Mejora de nivel con alubias verdes." },
+  { id: "nivel-6", titulo: "Subir la gema a +6", tipo: "nivel", meta: 6, descripcion: "Nivel máximo con reserva de alubias." },
+  { id: "personalizado", titulo: "Objetivo personalizado", tipo: "personalizado", meta: 1, descripcion: "Define tu propia meta de alquimia." }
+];
+
+const CLARIDAD_RANK = { mate: 0, claro: 1, limpido: 2, brillante: 3, excelente: 4 };
+
 const DEFAULT_STATE = {
-  version: 5,
+  version: 6,
   perfil: {
     nombre: "Mi Cuenta",
     servidor: "Ruby"
@@ -338,11 +379,16 @@ const DEFAULT_STATE = {
   corsSemanaActual: 0,
   semanaHistorial: [0, 0, 0, 0, 0, 0, 0], // L, M, X, J, V, S, D
   granjeros: [
-    { id: 1, nombre: "Fragmentero 1", hechoHoy: false, hora: "", tiempoMin: 0 },
-    { id: 2, nombre: "Fragmentero 2", hechoHoy: false, hora: "", tiempoMin: 0 },
-    { id: 3, nombre: "Fragmentero 3", hechoHoy: false, hora: "", tiempoMin: 0 },
-    { id: 4, nombre: "Fragmentero 4", hechoHoy: false, hora: "", tiempoMin: 0 }
+    { id: 1, nombre: "Fragmentero 1", hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 },
+    { id: 2, nombre: "Fragmentero 2", hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 },
+    { id: 3, nombre: "Fragmentero 3", hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 },
+    { id: 4, nombre: "Fragmentero 4", hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 }
   ],
+  cronometroGeneral: {
+    inicio: null,
+    ultimoMs: 0,
+    ultimoGranjero: null
+  },
   ruedaDSS: {
     gemaActiva: "rubi",
     slots: {
@@ -374,6 +420,11 @@ const DEFAULT_STATE = {
       claridad: { exitos: 0, fallos: 0 },
       alubia: { exitos: 0, fallos: 0 }
     }
+  },
+  objetivoAlquimia: {
+    actual: null,
+    historial: [],
+    inicializado: false
   },
   finanzas: {
     saldoWons: 0,
@@ -445,6 +496,19 @@ function mergeStateWithDefaults(parsed) {
     merged.fusionStats.totalExitos = Math.max(0, parseInt(merged.fusionStats.totalExitos, 10) || 0);
     merged.fusionStats.totalFallos = Math.max(0, parseInt(merged.fusionStats.totalFallos, 10) || 0);
   }
+  // Normalizar objetivo de alquimia
+  if (!merged.objetivoAlquimia || typeof merged.objetivoAlquimia !== "object" || Array.isArray(merged.objetivoAlquimia)) {
+    merged.objetivoAlquimia = { actual: null, historial: [], inicializado: false };
+  } else {
+    const oa = merged.objetivoAlquimia;
+    merged.objetivoAlquimia = {
+      actual: (oa.actual && typeof oa.actual === "object" && !Array.isArray(oa.actual))
+        ? Object.assign({}, oa.actual)
+        : null,
+      historial: Array.isArray(oa.historial) ? oa.historial.slice(0, 30) : [],
+      inicializado: !!oa.inicializado
+    };
+  }
   // Normalizar preferencias de notificaciones de eventos
   if (!merged.notificaciones || typeof merged.notificaciones !== "object" || Array.isArray(merged.notificaciones)) {
     merged.notificaciones = { permisoSolicitado: false, eventos: {}, notificados: {} };
@@ -497,15 +561,39 @@ function mergeStateWithDefaults(parsed) {
     const previos = Array.isArray(merged.granjeros) ? merged.granjeros : [];
     merged.granjeros = DEFAULT_STATE.granjeros.map((g, i) => Object.assign({}, g, previos[i] || {}));
   }
+  merged.granjeros.forEach(g => {
+    const totalMs = parseFloat(g.tiempoTotalMs);
+    const ultimaMs = parseFloat(g.ultimaSesionMs);
+    g.tiempoTotalMs = Number.isFinite(totalMs) && totalMs > 0
+      ? totalMs
+      : Math.max(0, parseInt(g.tiempoTotalSeg, 10) || 0) * 1000;
+    g.ultimaSesionMs = Number.isFinite(ultimaMs) && ultimaMs > 0
+      ? ultimaMs
+      : Math.max(0, parseInt(g.ultimaSesionSeg, 10) || 0) * 1000;
+    g.sesiones = Math.max(0, parseInt(g.sesiones, 10) || 0);
+    delete g.cronoInicio;
+  });
+  // Normalizar cronómetro general
+  if (!merged.cronometroGeneral || typeof merged.cronometroGeneral !== "object" || Array.isArray(merged.cronometroGeneral)) {
+    merged.cronometroGeneral = { inicio: null, ultimoMs: 0, ultimoGranjero: null };
+  } else {
+    const cg = merged.cronometroGeneral;
+    merged.cronometroGeneral = {
+      inicio: (typeof cg.inicio === "number" && isFinite(cg.inicio)) ? cg.inicio : null,
+      ultimoMs: Math.max(0, parseFloat(cg.ultimoMs) || 0),
+      ultimoGranjero: (typeof cg.ultimoGranjero === "number") ? cg.ultimoGranjero : null
+    };
+  }
   // Normalizar historial semanal
   if (!Array.isArray(merged.semanaHistorial) || merged.semanaHistorial.length !== 7) {
     merged.semanaHistorial = [0, 0, 0, 0, 0, 0, 0];
   } else {
     merged.semanaHistorial = merged.semanaHistorial.slice();
   }
-  // Fechas de control diario/semanal
-  if (!merged.ultimoDia) merged.ultimoDia = fechaLocalISO();
-  if (!merged.inicioSemana) merged.inicioSemana = inicioSemanaISO();
+  // Fechas de control diario/semanal (el ciclo de juego reinicia a las 18:00)
+  const migracionReset = (parsed.version || 0) < 6;
+  if (!merged.ultimoDia || migracionReset) merged.ultimoDia = fechaJuegoISO();
+  if (!merged.inicioSemana || migracionReset) merged.inicioSemana = inicioSemanaJuegoISO();
 
   return merged;
 }
@@ -525,8 +613,8 @@ function loadState() {
  * avanza el contador de semanas (reiniciando acumulados) al cambiar de semana.
  */
 function verificarCambioDia() {
-  const hoy = fechaLocalISO();
-  const semana = inicioSemanaISO();
+  const hoy = fechaJuegoISO();
+  const semana = inicioSemanaJuegoISO();
   let cambio = false;
 
   if (!STATE.inicioSemana) {
@@ -740,6 +828,254 @@ function renderListaObjetivosHtml(lista, mensajeVacio) {
   }).join('');
 }
 
+function objetivoAlquimiaActual() {
+  return STATE.objetivoAlquimia ? STATE.objetivoAlquimia.actual : null;
+}
+
+function catalogoObjetivo(id) {
+  return OBJETIVOS_ALQUIMIA_CATALOGO.find(o => o.id === id) || null;
+}
+
+function calcularProgresoObjetivo(objetivo) {
+  const slot = (STATE.ruedaDSS && STATE.ruedaDSS.slots && STATE.ruedaDSS.slots[objetivo.gema]) || {};
+  if (objetivo.tipo === "antiguas") return { valor: slot.stockAntiguas || 0, meta: objetivo.meta || 10 };
+  if (objetivo.tipo === "legendarias") return { valor: slot.stockLegendarias || 0, meta: objetivo.meta || 4 };
+  if (objetivo.tipo === "miticas") return { valor: slot.stockMiticas || 0, meta: objetivo.meta || 1 };
+  if (objetivo.tipo === "claridad") return { valor: CLARIDAD_RANK[slot.claridad || "mate"] || 0, meta: objetivo.meta || 1 };
+  if (objetivo.tipo === "nivel") return { valor: slot.nivel || 0, meta: objetivo.meta || 6 };
+  return null;
+}
+
+function renderObjetivoAlquimia() {
+  const cont = document.getElementById("objetivoAlquimiaBox");
+  if (!cont) return;
+
+  const oa = STATE.objetivoAlquimia || { actual: null, historial: [] };
+  const actual = oa.actual;
+
+  if (!actual) {
+    const historial = oa.historial || [];
+    cont.innerHTML = `
+      <div class="current-goal-card empty">
+        <div class="current-goal-head">
+          <span class="current-goal-kicker">Objetivo de alquimia</span>
+          <span class="goal-status muted">Sin definir</span>
+        </div>
+        <p class="current-goal-desc">Define qué quieres conseguir con tu alquimia. Al completarlo podrás pasar al siguiente paso, continuar o cambiar de rumbo.</p>
+        <button class="btn-primary goal-define-btn" onclick="abrirModalObjetivoAlquimia()">${svgIcon("target", "btn-svg")} Definir objetivo</button>
+        ${historial.length ? `<div class="goal-last">Último completado: ${escapeHtml(historial[0].titulo || "")}</div>` : ""}
+      </div>
+    `;
+    return;
+  }
+
+  const gema = GEMA_INFO_MAP[actual.gema] || GEMA_INFO_MAP.rubi;
+  const progreso = calcularProgresoObjetivo(actual);
+  const porcentaje = progreso ? Math.min(100, Math.round((progreso.valor / Math.max(1, progreso.meta)) * 100)) : 0;
+  const alcanzado = progreso ? progreso.valor >= progreso.meta : false;
+
+  const barraProgreso = progreso
+    ? `<div class="current-goal-progress">
+        <div class="progress-track"><div class="progress-fill ${alcanzado ? "green" : ""}" style="width:${porcentaje}%"></div></div>
+        <span>${Math.min(progreso.valor, progreso.meta)} / ${progreso.meta}</span>
+      </div>`
+    : `<div class="current-goal-manual">Objetivo personalizado · progreso manual</div>`;
+
+  cont.innerHTML = `
+    <div class="current-goal-card">
+      <div class="current-goal-head">
+        <span class="current-goal-kicker">Objetivo de alquimia</span>
+        <span class="goal-status ${alcanzado ? "done" : ""}">${alcanzado ? "Meta alcanzada" : "En curso"}</span>
+      </div>
+      <div class="current-goal-main">
+        <span class="current-goal-gem">${iconoGema(actual.gema)}</span>
+        <div>
+          <div class="current-goal-title">${gema.nombre} · ${escapeHtml(actual.titulo)}</div>
+          <div class="current-goal-desc">${escapeHtml(actual.descripcion || "")}</div>
+        </div>
+      </div>
+      ${barraProgreso}
+      <div class="current-goal-actions">
+        <button class="btn-complete done" onclick="marcarObjetivoCompletado()">${svgIcon("check", "btn-svg")} Completado</button>
+        <button class="btn-complete" onclick="abrirModalObjetivoAlquimia()">${svgIcon("edit", "btn-svg")} Cambiar</button>
+      </div>
+      ${oa.historial && oa.historial.length ? `<div class="goal-last">Completados: ${oa.historial.length}${oa.historial[0] ? ` · Último: ${escapeHtml(oa.historial[0].titulo || "")}` : ""}</div>` : ""}
+    </div>
+  `;
+}
+
+function abrirModalObjetivoAlquimia() {
+  if (!STATE.objetivoAlquimia) {
+    STATE.objetivoAlquimia = { actual: null, historial: [], inicializado: false };
+  }
+  const actual = objetivoAlquimiaActual();
+  const gemSel = document.getElementById("objGema");
+  const tipoSel = document.getElementById("objTipo");
+  if (!gemSel || !tipoSel) return;
+
+  gemSel.innerHTML = Object.keys(GEMA_INFO_MAP)
+    .map(k => `<option value="${k}">${GEMA_INFO_MAP[k].nombre}</option>`)
+    .join("");
+  tipoSel.innerHTML = OBJETIVOS_ALQUIMIA_CATALOGO
+    .map(o => `<option value="${o.id}">${o.titulo}</option>`)
+    .join("");
+
+  gemSel.value = actual && GEMA_INFO_MAP[actual.gema] ? actual.gema : (STATE.ruedaDSS.gemaActiva || "rubi");
+  tipoSel.value = actual && catalogoObjetivo(actual.catalogId) ? actual.catalogId : "antiguas-10";
+
+  actualizarFormularioObjetivo();
+
+  const metaInput = document.getElementById("objMeta");
+  const tituloInput = document.getElementById("objTitulo");
+  if (actual) {
+    if (metaInput) metaInput.value = actual.meta || 1;
+    if (tituloInput) tituloInput.value = actual.catalogId === "personalizado" ? actual.titulo : "";
+  }
+
+  STATE.objetivoAlquimia.inicializado = true;
+  const modal = document.getElementById("modalObjetivoAlquimia");
+  if (modal) modal.classList.add("active");
+}
+
+function actualizarFormularioObjetivo() {
+  const tipoSel = document.getElementById("objTipo");
+  if (!tipoSel) return;
+  const def = catalogoObjetivo(tipoSel.value);
+  const esPersonalizado = !def || def.id === "personalizado";
+
+  const tituloGroup = document.getElementById("objTituloGroup");
+  if (tituloGroup) tituloGroup.style.display = esPersonalizado ? "block" : "none";
+
+  const metaInput = document.getElementById("objMeta");
+  if (metaInput && def && !esPersonalizado) metaInput.value = def.meta;
+  if (metaInput && esPersonalizado) metaInput.value = metaInput.value || 1;
+}
+
+function guardarObjetivoAlquimia() {
+  const gemSel = document.getElementById("objGema");
+  const tipoSel = document.getElementById("objTipo");
+  const metaInput = document.getElementById("objMeta");
+  const tituloInput = document.getElementById("objTitulo");
+  if (!gemSel || !tipoSel) return;
+
+  const def = catalogoObjetivo(tipoSel.value);
+  if (!def) return;
+
+  const esPersonalizado = def.id === "personalizado";
+  let titulo = def.titulo;
+  if (esPersonalizado) {
+    titulo = (tituloInput && tituloInput.value.trim()) || "";
+    if (!titulo) {
+      alert("Escribe un nombre para tu objetivo personalizado.");
+      return;
+    }
+  }
+
+  const meta = Math.max(1, parseInt(metaInput && metaInput.value, 10) || 1);
+  const gema = gemSel.value;
+
+  STATE.objetivoAlquimia.actual = {
+    id: `obj-${Date.now()}`,
+    catalogId: def.id,
+    gema,
+    tipo: def.tipo,
+    titulo,
+    descripcion: esPersonalizado ? "Meta definida por ti." : def.descripcion,
+    meta,
+    creadoEn: fechaLocalISO()
+  };
+  STATE.objetivoAlquimia.inicializado = true;
+
+  cerrarModal("modalObjetivoAlquimia");
+  switchFinanzasTab("plan");
+  saveState();
+}
+
+function siguienteObjetivoSugerido(actual) {
+  const base = OBJETIVOS_ALQUIMIA_CATALOGO.filter(o => o.id !== "personalizado");
+  const idx = base.findIndex(o => o.id === actual.catalogId);
+  if (idx >= 0 && idx < base.length - 1) return base[idx + 1];
+  return null;
+}
+
+function construirObjetivoDesdeCatalogo(def, gema) {
+  return {
+    id: `obj-${Date.now()}`,
+    catalogId: def.id,
+    gema,
+    tipo: def.tipo,
+    titulo: def.titulo,
+    descripcion: def.descripcion,
+    meta: def.meta,
+    creadoEn: fechaLocalISO()
+  };
+}
+
+function archivarObjetivoActual() {
+  const actual = objetivoAlquimiaActual();
+  if (!actual) return;
+  if (!Array.isArray(STATE.objetivoAlquimia.historial)) STATE.objetivoAlquimia.historial = [];
+  STATE.objetivoAlquimia.historial.unshift(Object.assign({}, actual, { completadoEn: fechaLocalISO() }));
+  STATE.objetivoAlquimia.historial = STATE.objetivoAlquimia.historial.slice(0, 30);
+  STATE.objetivoAlquimia.actual = null;
+}
+
+function marcarObjetivoCompletado() {
+  const actual = objetivoAlquimiaActual();
+  if (!actual) return;
+
+  const gema = GEMA_INFO_MAP[actual.gema] || GEMA_INFO_MAP.rubi;
+  const siguiente = siguienteObjetivoSugerido(actual);
+  const texto = document.getElementById("objetivoCompletadoTexto");
+  const sig = document.getElementById("objetivoCompletadoSiguiente");
+
+  if (texto) texto.textContent = `${gema.nombre} · ${actual.titulo}`;
+  if (sig) {
+    sig.textContent = siguiente
+      ? `Siguiente sugerido: ${siguiente.titulo} (${gema.nombre})`
+      : "No hay un siguiente paso predefinido.";
+  }
+
+  const modal = document.getElementById("modalObjetivoCompletado");
+  if (modal) modal.classList.add("active");
+}
+
+function completarObjetivo(accion) {
+  const actual = objetivoAlquimiaActual();
+  cerrarModal("modalObjetivoCompletado");
+  if (!actual) return;
+
+  // Continuar: mantiene el objetivo activo para seguir acumulando
+  if (accion === "continuar") return;
+
+  const siguiente = accion === "siguiente" ? siguienteObjetivoSugerido(actual) : null;
+  archivarObjetivoActual();
+
+  if (accion === "siguiente" && siguiente) {
+    STATE.objetivoAlquimia.actual = construirObjetivoDesdeCatalogo(siguiente, actual.gema);
+    switchFinanzasTab("plan");
+    saveState();
+    return;
+  }
+
+  switchFinanzasTab("plan");
+  saveState();
+  setTimeout(() => abrirModalObjetivoAlquimia(), 180);
+}
+
+function iniciarObjetivoAlquimia() {
+  if (!STATE.objetivoAlquimia) {
+    STATE.objetivoAlquimia = { actual: null, historial: [], inicializado: false };
+  }
+  if (STATE.objetivoAlquimia.actual || STATE.objetivoAlquimia.inicializado) return;
+
+  STATE.objetivoAlquimia.inicializado = true;
+  saveState();
+  setTimeout(() => {
+    if (!STATE.objetivoAlquimia.actual) abrirModalObjetivoAlquimia();
+  }, 500);
+}
+
 function renderObjetivos() {
   const objs = STATE.objetivos || [];
   const hitosPlan = objs.filter(o => o.esHitoPlan);
@@ -907,6 +1243,10 @@ function guardarPrecioCompraRubi() {
 }
 
 function comprarRubiAntiguoMercadoRapido() {
+  const objetivo = objetivoAlquimiaActual();
+  const gemaKey = (objetivo && GEMA_INFO_MAP[objetivo.gema]) ? objetivo.gema : (STATE.ruedaDSS.gemaActiva || "rubi");
+  const gema = GEMA_INFO_MAP[gemaKey] || GEMA_INFO_MAP.rubi;
+
   const costoWons = STATE.finanzas.precioCompraRubiWons !== undefined ? STATE.finanzas.precioCompraRubiWons : 4.5;
   const costoKK = STATE.finanzas.precioCompraRubiKK !== undefined ? STATE.finanzas.precioCompraRubiKK : 0;
   const costoTotalKK = (costoWons * 100) + costoKK;
@@ -916,27 +1256,24 @@ function comprarRubiAntiguoMercadoRapido() {
   if (saldoActualTotalKK < costoTotalKK) {
     const faltanKK = costoTotalKK - saldoActualTotalKK;
     const faltanW = (faltanKK / 100).toFixed(1);
-    alert(`⚠️ Fondos insuficientes para comprar 1 Rubí Antiguo.\n\nPrecio: ${costoWons}W ${costoKK > 0 ? costoKK + 'kk' : ''}\nTu saldo: ${STATE.finanzas.saldoWons}W y ${STATE.finanzas.saldoYangKK}kk\nTe faltan: ~${faltanW} Wons.\n\n¡Vende más piedras secundarias en el mercado para acumular fondos!`);
+    alert(`Fondos insuficientes para comprar 1 ${gema.nombre} Antiguo.\n\nPrecio: ${costoWons}W ${costoKK > 0 ? costoKK + 'kk' : ''}\nTu saldo: ${STATE.finanzas.saldoWons}W y ${STATE.finanzas.saldoYangKK}kk\nTe faltan: ~${faltanW} Wons.\n\nVende más piedras secundarias en el mercado para acumular fondos.`);
     return;
   }
 
-  // Restar costo
   const nuevoSaldoKK = saldoActualTotalKK - costoTotalKK;
   STATE.finanzas.saldoWons = Math.floor(nuevoSaldoKK / 100);
   STATE.finanzas.saldoYangKK = Math.round(nuevoSaldoKK % 100);
 
-  // Sumar +1 Rubí Antiguo a la Rueda DSS
-  if (!STATE.ruedaDSS.slots.rubi) {
-    STATE.ruedaDSS.slots.rubi = { estado: "en_progreso", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 };
+  if (!STATE.ruedaDSS.slots[gemaKey]) {
+    STATE.ruedaDSS.slots[gemaKey] = { estado: "en_progreso", claridad: "mate", nivel: 0, stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0 };
   }
-  STATE.ruedaDSS.slots.rubi.stockAntiguas = (STATE.ruedaDSS.slots.rubi.stockAntiguas || 0) + 1;
+  STATE.ruedaDSS.slots[gemaKey].stockAntiguas = (STATE.ruedaDSS.slots[gemaKey].stockAntiguas || 0) + 1;
 
   vibrar(60);
   saveState();
-  renderAll();
 
-  const stockNuevo = STATE.ruedaDSS.slots.rubi.stockAntiguas;
-  alert(`🎉 ¡Rubí Antiguo Comprado con éxito!\n\nSe descontaron ${costoWons} Wons ${costoKK > 0 ? '+ ' + costoKK + 'kk' : ''} de tus fondos.\nTu stock de Rubí Antiguo en almacén sube a: ${stockNuevo} piedras.\n\n¡Estrategia de reinversión en marcha!`);
+  const stockNuevo = STATE.ruedaDSS.slots[gemaKey].stockAntiguas;
+  alert(`${gema.nombre} Antiguo comprado con éxito.\n\nSe descontaron ${costoWons} Wons ${costoKK > 0 ? '+ ' + costoKK + 'kk' : ''} de tus fondos.\nTu stock de ${gema.nombre} Antiguo sube a: ${stockNuevo} piedras.`);
 }
 
 function vibrar(ms = 40) {
@@ -1182,48 +1519,158 @@ function activarStopLoss() {
 // 8. CRONÓMETRO DE GRANJEROS
 // ==========================================
 
-let sessionTimerId = null;
-let sessionSeconds = 12 * 60;
-let sessionRunning = false;
+function formatearCronometro(ms) {
+  const totalDecimas = Math.max(0, Math.floor((ms || 0) / 100));
+  const decimas = totalDecimas % 10;
+  const totalSegundos = Math.floor(totalDecimas / 10);
+  const segundos = totalSegundos % 60;
+  const minutos = Math.floor(totalSegundos / 60) % 60;
+  const horas = Math.floor(totalSegundos / 3600);
 
-function toggleSessionTimer() {
-  const btn = document.getElementById("btnTimerToggle");
-  if (sessionRunning) {
-    clearInterval(sessionTimerId);
-    sessionRunning = false;
-    if (btn) btn.innerHTML = svgIcon("play");
-  } else {
-    sessionRunning = true;
-    if (btn) btn.innerHTML = svgIcon("pause");
-    sessionTimerId = setInterval(() => {
-      if (sessionSeconds > 0) {
-        sessionSeconds--;
-        renderSessionTimer();
-      } else {
-        clearInterval(sessionTimerId);
-        sessionRunning = false;
-        if (btn) btn.innerHTML = svgIcon("play");
-        alert("¡12 minutos cumplidos! Hora de cambiar de fragmentero.");
-      }
-    }, 1000);
+  const mm = String(minutos).padStart(2, "0");
+  const ss = String(segundos).padStart(2, "0");
+  return horas > 0
+    ? `${horas}:${mm}:${ss}.${decimas}`
+    : `${mm}:${ss}.${decimas}`;
+}
+
+function cronometroGeneralCorriendo() {
+  return !!(STATE.cronometroGeneral && STATE.cronometroGeneral.inicio);
+}
+
+function iniciarCronometroGeneral() {
+  verificarCambioDia();
+  if (cronometroGeneralCorriendo()) return;
+
+  STATE.cronometroGeneral = { inicio: Date.now(), ultimoMs: 0, ultimoGranjero: null };
+  saveState();
+  actualizarCronometroGeneral();
+}
+
+function resetCronometroGeneral() {
+  if (cronometroGeneralCorriendo() && !confirm("¿Reiniciar el cronómetro? Se perderá el tiempo actual.")) return;
+  STATE.cronometroGeneral = { inicio: null, ultimoMs: 0, ultimoGranjero: null };
+  saveState();
+  actualizarCronometroGeneral();
+}
+
+function detenerCronometroEnGranjero(index) {
+  const cg = STATE.cronometroGeneral;
+  const g = STATE.granjeros[index];
+  if (!cg || !cg.inicio || !g) return;
+
+  const ms = Math.max(0, Date.now() - cg.inicio);
+  if (ms > 0) {
+    g.tiempoTotalMs = (g.tiempoTotalMs || 0) + ms;
+    g.ultimaSesionMs = ms;
+    g.sesiones = (g.sesiones || 0) + 1;
+  }
+
+  STATE.cronometroGeneral = { inicio: null, ultimoMs: ms, ultimoGranjero: index };
+  saveState();
+  actualizarCronometroGeneral();
+}
+
+function actualizarCronometroGeneral() {
+  const digits = document.getElementById("stopwatchDigits");
+  const hint = document.getElementById("stopwatchHint");
+  const startBtn = document.getElementById("stopwatchStartBtn");
+  const cg = STATE.cronometroGeneral || {};
+  const corriendo = !!cg.inicio;
+  const ms = corriendo ? Math.max(0, Date.now() - cg.inicio) : (cg.ultimoMs || 0);
+
+  if (digits) {
+    digits.textContent = formatearCronometro(ms);
+    digits.classList.toggle("running", corriendo);
+  }
+
+  if (startBtn) {
+    startBtn.disabled = corriendo;
+    startBtn.innerHTML = corriendo
+      ? `${svgIcon("clock", "btn-svg")} Corriendo`
+      : `${svgIcon("play", "btn-svg")} ${ms ? "Iniciar de nuevo" : "Iniciar"}`;
+  }
+
+  if (hint) {
+    if (corriendo) {
+      hint.textContent = "Corriendo · pulsa “Parar” en el fragmentero que termine.";
+    } else if (cg.ultimoMs && cg.ultimoGranjero !== null && cg.ultimoGranjero !== undefined) {
+      const g = STATE.granjeros[cg.ultimoGranjero];
+      hint.textContent = `Último registro: ${g ? g.nombre : "Fragmentero"} · ${formatearCronometro(cg.ultimoMs)}`;
+    } else {
+      hint.textContent = "Pulsa Iniciar y para con el fragmentero que termine.";
+    }
   }
 }
 
-function resetSessionTimer(minutos = 12) {
-  clearInterval(sessionTimerId);
-  sessionRunning = false;
-  sessionSeconds = minutos * 60;
-  const btn = document.getElementById("btnTimerToggle");
-  if (btn) btn.innerHTML = svgIcon("play");
-  renderSessionTimer();
+function renderRendimientoFragmenteros() {
+  const cont = document.getElementById("farmersChart");
+  if (!cont) return;
+
+  const filas = (STATE.granjeros || []).map((g, i) => {
+    const sesiones = g.sesiones || 0;
+    const total = g.tiempoTotalMs || 0;
+    return {
+      i,
+      nombre: g.nombre,
+      sesiones,
+      total,
+      ultima: g.ultimaSesionMs || 0,
+      promedio: sesiones ? total / sesiones : 0
+    };
+  });
+
+  const conDatos = filas.filter(f => f.sesiones > 0);
+  const maxPromedio = conDatos.length ? Math.max(...conDatos.map(f => f.promedio)) : 0;
+  const minPromedio = conDatos.length ? Math.min(...conDatos.map(f => f.promedio)) : 0;
+  const totalSesiones = conDatos.reduce((acc, f) => acc + f.sesiones, 0);
+  const totalTiempo = conDatos.reduce((acc, f) => acc + f.total, 0);
+  const media = totalSesiones ? totalTiempo / totalSesiones : 0;
+  const masRapido = conDatos.find(f => f.promedio === minPromedio);
+  const masLento = conDatos.find(f => f.promedio === maxPromedio);
+  const hayComparacion = conDatos.length > 1 && maxPromedio !== minPromedio;
+
+  const filasHtml = filas.map(f => {
+    const pct = f.promedio > 0 && maxPromedio > 0 ? Math.max(5, Math.round((f.promedio / maxPromedio) * 100)) : 0;
+    let clase = "";
+    if (hayComparacion && f.promedio === minPromedio) clase = "fast";
+    else if (hayComparacion && f.promedio === maxPromedio) clase = "slow";
+    else if (f.sesiones > 0) clase = "mid";
+
+    return `<div class="farmer-bar-row" title="${escapeHtml(f.nombre)} · ${f.sesiones} sesión(es) · última ${f.ultima ? formatearCronometro(f.ultima) : "—"}">
+      <span class="fb-name">${escapeHtml(f.nombre)}</span>
+      <div class="fb-track"><div class="fb-fill ${clase}" style="width:${pct}%"></div></div>
+      <span class="fb-time">${f.sesiones ? formatearCronometro(f.promedio) : "—"}</span>
+    </div>`;
+  }).join("");
+
+  cont.innerHTML = `
+    <div class="chart-head">
+      <span>Rendimiento por fragmentero</span>
+      <span class="chart-head-right">
+        Promedio por sesión
+        <button class="chart-reset" onclick="reiniciarTiemposFragmenteros()" title="Reiniciar tiempos" aria-label="Reiniciar tiempos">${svgIcon("refresh", "btn-svg")}</button>
+      </span>
+    </div>
+    <div class="farmer-bars">${filasHtml}</div>
+    <div class="farmer-chart-foot">
+      ${conDatos.length
+        ? `<span>Media: <strong>${formatearCronometro(media)}</strong></span>${masRapido && masLento && hayComparacion ? `<span>${escapeHtml(masRapido.nombre)} más rápido · ${escapeHtml(masLento.nombre)} más lento</span>` : ""}`
+        : `<span>Inicia el cronómetro y páralo con un fragmentero para registrar el primer tiempo.</span>`}
+    </div>
+  `;
 }
 
-function renderSessionTimer() {
-  const m = Math.floor(sessionSeconds / 60);
-  const s = sessionSeconds % 60;
-  const str = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  const el = document.getElementById("sessionTimerDigits");
-  if (el) el.textContent = str;
+function reiniciarTiemposFragmenteros() {
+  if (!confirm("¿Reiniciar los tiempos y sesiones de los 4 fragmenteros? El cronómetro activo también se detendrá.")) return;
+  (STATE.granjeros || []).forEach(g => {
+    g.tiempoTotalMs = 0;
+    g.ultimaSesionMs = 0;
+    g.sesiones = 0;
+  });
+  STATE.cronometroGeneral = { inicio: null, ultimoMs: 0, ultimoGranjero: null };
+  saveState();
+  actualizarCronometroGeneral();
 }
 
 // ==========================================
@@ -1236,9 +1683,11 @@ function renderAll() {
   renderConsumiblesDash();
   renderDashboardSummary();
   renderGranjeros();
+  renderRendimientoFragmenteros();
   renderEventosRadar();   // async — actualiza el DOM cuando resuelve
   renderRuedaDSS();
   renderObjetivos();
+  renderObjetivoAlquimia();
   renderFinanzas();
   renderCalculadoraLuzVerde();
   renderFusionStats();
@@ -1279,7 +1728,7 @@ function renderDashboardChart() {
   if (!cont) return;
 
   const dias = ["L", "M", "X", "J", "V", "S", "D"];
-  const hoy = indiceDiaSemana();
+  const hoy = indiceDiaJuego();
   const historial = STATE.semanaHistorial || [0, 0, 0, 0, 0, 0, 0];
 
   cont.innerHTML = dias.map((dia, i) => {
@@ -1310,7 +1759,7 @@ function renderDashboardZoom() {
   const corsHoy = hechos * 5;
   const dashBadge = document.getElementById("dashCorsBadge");
   if (dashBadge) {
-    dashBadge.textContent = `Hoy: ${corsHoy}/20 Cors`;
+    dashBadge.textContent = `Ciclo: ${corsHoy}/20 Cors`;
     dashBadge.className = `brand-badge ${corsHoy === 20 ? 'semaphore-green' : ''}`;
   }
 
@@ -1319,14 +1768,14 @@ function renderDashboardZoom() {
 
     cont.innerHTML = `
       <div class="card-title" style="margin-bottom:6px;">
-        <span>${svgIcon("bolt", "obj-icon")} Tarea Diaria</span>
+        <span>${svgIcon("bolt", "obj-icon")} Tarea del ciclo</span>
         <span class="semaphore-badge ${pct === 100 ? 'semaphore-green' : 'semaphore-yellow'}">${corsHoy} / 20 Cors (${pct}%)</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill ${pct === 100 ? 'green' : ''}" style="width: ${pct}%"></div>
       </div>
       <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
-        ${hechos === 4 ? '¡Cuota de hoy completada!' : `Faltan ${4 - hechos} personaje(s) por fragmentar.`}
+        ${hechos === 4 ? '¡Cuota del ciclo completada!' : `Faltan ${4 - hechos} personaje(s) por fragmentar.`}
       </p>
       <button class="btn-primary" onclick="switchView('view-granjeros')" style="padding: 9px; font-size: 0.82rem;">${svgIcon("users", "btn-svg")} Abrir Fragmenteros ${svgIcon("chevronRight", "btn-svg")}</button>
     `;
@@ -1335,7 +1784,7 @@ function renderDashboardZoom() {
     const pct = Math.min(100, Math.round((cors / 140) * 100));
     const semColor = cors >= 100 ? 'semaphore-green' : (cors >= 70 ? 'semaphore-yellow' : 'semaphore-red');
 
-      const diaHoyIdx = (new Date().getDay() + 6) % 7; // 0=Lun, 1=Mar ... 6=Dom
+      const diaHoyIdx = indiceDiaJuego(); // ciclo de juego: reinicia a las 18:00
       cont.innerHTML = `
       <div class="card-title">
         <span>${svgIcon("calendar", "obj-icon")} Semana ${STATE.semanaActual} de 36</span>
@@ -1424,18 +1873,34 @@ function renderGranjeros() {
   const cont = document.getElementById("farmersList");
   if (!cont) return;
 
-  cont.innerHTML = STATE.granjeros.map((g, i) => `
+  const cronometroActivo = cronometroGeneralCorriendo();
+
+  cont.innerHTML = STATE.granjeros.map((g, i) => {
+    const ultima = g.ultimaSesionMs ? formatearCronometro(g.ultimaSesionMs) : "—";
+    const meta = `${g.hora ? `Listo ${escapeHtml(g.hora)} · ` : ""}${g.sesiones ? `${g.sesiones} ses.` : "Sin tiempos"}`;
+
+    return `
     <div class="farmer-row">
-      <div class="farmer-name">
-        <span class="farmer-status ${g.hechoHoy ? 'done' : ''}">${svgIcon(g.hechoHoy ? "check" : "clock")}</span>
-        <span>${escapeHtml(g.nombre)}</span>
-        ${g.hora ? `<span class="farmer-time">(${escapeHtml(g.hora)})</span>` : ''}
+      <div class="farmer-row-main">
+        <div class="farmer-name">
+          <span class="farmer-status ${g.hechoHoy ? 'done' : ''}">${svgIcon(g.hechoHoy ? "check" : "clock")}</span>
+          <div class="farmer-info">
+            <span class="farmer-name-text">${escapeHtml(g.nombre)}</span>
+            <span class="farmer-meta">${meta}</span>
+          </div>
+        </div>
+        <span class="farmer-clock">${ultima}</span>
       </div>
-      <button class="btn-complete ${g.hechoHoy ? 'done' : ''}" onclick="toggleGranjero(${i})">
-        ${g.hechoHoy ? 'Completado' : 'Marcar 5 Cors'}
-      </button>
-    </div>
-  `).join('');
+      <div class="farmer-row-actions">
+        <button class="btn-stop-farmer ${cronometroActivo ? "ready" : ""}" onclick="detenerCronometroEnGranjero(${i})" ${cronometroActivo ? "" : "disabled"} title="Parar el cronómetro y asignar el tiempo a este fragmentero">
+          ${svgIcon("square", "btn-svg")} Parar
+        </button>
+        <button class="btn-complete ${g.hechoHoy ? 'done' : ''}" onclick="toggleGranjero(${i})">
+          ${g.hechoHoy ? 'Completado' : 'Marcar 5 Cors'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function toggleGranjero(index) {
@@ -1444,7 +1909,7 @@ function toggleGranjero(index) {
   if (!g) return;
 
   g.hechoHoy = !g.hechoHoy;
-  const diaIdx = indiceDiaSemana();
+  const diaIdx = indiceDiaJuego();
 
   if (g.hechoHoy) {
     const d = new Date();
@@ -2013,6 +2478,52 @@ function cambiarStockGema(tipo, delta) {
   saveState();
 }
 
+function abrirModalRegistrarPiedras() {
+  const sel = document.getElementById("regGema");
+  if (!sel) return;
+
+  sel.innerHTML = Object.keys(GEMA_INFO_MAP)
+    .map(k => `<option value="${k}">${GEMA_INFO_MAP[k].nombre}</option>`)
+    .join("");
+  sel.value = STATE.ruedaDSS.gemaActiva || "rubi";
+
+  const clase = document.getElementById("regClase");
+  if (clase) clase.value = "stockAntiguas";
+  const cantidad = document.getElementById("regCantidad");
+  if (cantidad) cantidad.value = 1;
+
+  const modal = document.getElementById("modalRegistrarPiedras");
+  if (modal) modal.classList.add("active");
+}
+
+function guardarRegistroPiedras() {
+  const gemaSel = document.getElementById("regGema");
+  const claseSel = document.getElementById("regClase");
+  const cantidadInput = document.getElementById("regCantidad");
+  if (!gemaSel || !claseSel) return;
+
+  const gemaKey = gemaSel.value;
+  const campo = claseSel.value;
+  const camposValidos = ["stockAntiguas", "stockLegendarias", "stockMiticas"];
+  if (!GEMA_INFO_MAP[gemaKey] || !camposValidos.includes(campo)) return;
+
+  const cantidad = Math.max(1, parseInt(cantidadInput && cantidadInput.value, 10) || 1);
+
+  if (!STATE.ruedaDSS.slots[gemaKey]) {
+    STATE.ruedaDSS.slots[gemaKey] = {
+      estado: "en_progreso", claridad: "mate", nivel: 0,
+      stockAntiguas: 0, stockLegendarias: 0, stockMiticas: 0
+    };
+  }
+
+  STATE.ruedaDSS.slots[gemaKey][campo] = (STATE.ruedaDSS.slots[gemaKey][campo] || 0) + cantidad;
+  STATE.ruedaDSS.gemaActiva = gemaKey;
+
+  vibrar(35);
+  cerrarModal("modalRegistrarPiedras");
+  saveState();
+}
+
 
 function renderFinanzas() {
   const elWons = document.getElementById("saldoWons");
@@ -2061,19 +2572,30 @@ function renderFinanzas() {
     }).join('');
   }
 
-  // Panel de Arbitraje / Reinversión en Rubíes Antiguos
+  // Panel de Arbitraje / Reinversión ligado al objetivo actual
   const panelArb = document.getElementById("panelArbitrajeRubi");
-  const lblPrecio = document.getElementById("lblPrecioCompraRubi");
+  const arbTitulo = document.getElementById("arbTitulo");
+  const arbBoton = document.getElementById("arbBoton");
   if (panelArb) {
+    const objetivo = objetivoAlquimiaActual();
+    const gemaKey = (objetivo && GEMA_INFO_MAP[objetivo.gema]) ? objetivo.gema : (STATE.ruedaDSS.gemaActiva || "rubi");
+    const gema = GEMA_INFO_MAP[gemaKey] || GEMA_INFO_MAP.rubi;
+
     const cWons = STATE.finanzas.precioCompraRubiWons !== undefined ? STATE.finanzas.precioCompraRubiWons : 4.5;
     const cKK = STATE.finanzas.precioCompraRubiKK !== undefined ? STATE.finanzas.precioCompraRubiKK : 0;
     const precioTxt = `${cWons}W${cKK > 0 ? ' + ' + cKK + 'kk' : ''}`;
-    if (lblPrecio) lblPrecio.textContent = precioTxt;
 
     const saldoTotalKK = (STATE.finanzas.saldoWons * 100) + (STATE.finanzas.saldoYangKK || 0);
     const costoUnitarioKK = (cWons * 100) + cKK;
-    const rubisComprables = costoUnitarioKK > 0 ? Math.floor(saldoTotalKK / costoUnitarioKK) : 0;
-    const rubisStock = STATE.ruedaDSS?.slots?.rubi?.stockAntiguas || 0;
+    const comprables = costoUnitarioKK > 0 ? Math.floor(saldoTotalKK / costoUnitarioKK) : 0;
+    const stock = STATE.ruedaDSS?.slots?.[gemaKey]?.stockAntiguas || 0;
+
+    if (arbTitulo) {
+      arbTitulo.innerHTML = `${svgIcon("refresh", "obj-icon")} Reinversión: Comprar ${gema.nombre} Antiguo`;
+    }
+    if (arbBoton) {
+      arbBoton.innerHTML = `${svgIcon("cart", "btn-svg")} Comprar 1 ${gema.nombre} (-${precioTxt} → +1 al stock)`;
+    }
 
     panelArb.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); padding:8px 10px; border-radius:var(--radius-sm); border:1px solid rgba(231,76,60,0.25);">
@@ -2083,14 +2605,15 @@ function renderFinanzas() {
         </div>
         <div>
           <span style="color:var(--text-muted); font-size:0.75rem;">Poder de compra:</span>
-          <strong style="color:${rubisComprables > 0 ? 'var(--green)' : 'var(--text-dim)'}; margin-left:4px;">
-            ${rubisComprables} Rubí(es)
+          <strong style="color:${comprables > 0 ? 'var(--green)' : 'var(--text-dim)'}; margin-left:4px;">
+            ${comprables} ${gema.nombre}(es)
           </strong>
         </div>
       </div>
       <div style="font-size:0.73rem; color:var(--text-muted); margin-top:5px; text-align:right;">
-        Stock en almacén: <strong style="color:var(--ruby);">${rubisStock} Rubí(es) Antiguo(s)</strong>
+        Stock en almacén: <strong style="color:var(--gold);">${stock} ${gema.nombre} Antiguo(s)</strong>
       </div>
+      ${objetivo ? `<div style="font-size:0.68rem; color:var(--text-dim); margin-top:5px; text-align:right;">Vinculado a: ${escapeHtml(objetivo.titulo)}</div>` : ""}
     `;
   }
 }
@@ -2308,10 +2831,10 @@ function abrirModalAjustes() {
   // Cargar nombres de los 4 fragmenteros
   if (!STATE.granjeros || STATE.granjeros.length < 4) {
     STATE.granjeros = [
-      { id: 1, nombre: "Fragmentero 1", hechoHoy: false, hora: "", tiempoMin: 0 },
-      { id: 2, nombre: "Fragmentero 2", hechoHoy: false, hora: "", tiempoMin: 0 },
-      { id: 3, nombre: "Fragmentero 3", hechoHoy: false, hora: "", tiempoMin: 0 },
-      { id: 4, nombre: "Fragmentero 4", hechoHoy: false, hora: "", tiempoMin: 0 }
+      { id: 1, nombre: "Fragmentero 1", hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 },
+      { id: 2, nombre: "Fragmentero 2", hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 },
+      { id: 3, nombre: "Fragmentero 3", hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 },
+      { id: 4, nombre: "Fragmentero 4", hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 }
     ];
   }
   for (let i = 0; i < 4; i++) {
@@ -2340,7 +2863,7 @@ function guardarAjustesPerfil() {
     if (STATE.granjeros[i]) {
       STATE.granjeros[i].nombre = nombre;
     } else {
-      STATE.granjeros.push({ id: i + 1, nombre: nombre, hechoHoy: false, hora: "", tiempoMin: 0 });
+      STATE.granjeros.push({ id: i + 1, nombre: nombre, hechoHoy: false, hora: "", tiempoMin: 0, tiempoTotalMs: 0, ultimaSesionMs: 0, sesiones: 0 });
     }
   }
 
@@ -2428,8 +2951,8 @@ function restablecerTodosLosDatos() {
 
   localStorage.removeItem("naaytracker_state");
   STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
-  STATE.ultimoDia = fechaLocalISO();
-  STATE.inicioSemana = inicioSemanaISO();
+  STATE.ultimoDia = fechaJuegoISO();
+  STATE.inicioSemana = inicioSemanaJuegoISO();
   saveState();
   renderAll();
   cerrarModal("modalAjustes");
@@ -2483,9 +3006,13 @@ document.addEventListener("DOMContentLoaded", () => {
   renderIconosEstaticos();
   verificarCambioDia();
   renderAll();
-  renderSessionTimer();
+  actualizarCronometroGeneral();
   iniciarGestosSwipe();
   iniciarListaNotificaciones();
+  iniciarObjetivoAlquimia();
+
+  // Actualizar el cronómetro con precisión de décimas
+  setInterval(actualizarCronometroGeneral, 100);
 
   // Mantener los contadores al día aunque la app quede abierta varios días
   setInterval(verificarCambioDia, 60 * 1000);
