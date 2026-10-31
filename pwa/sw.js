@@ -1,5 +1,5 @@
-// Service Worker para NaayTracker (Offline-First Ultra Privado)
-const CACHE_NAME = 'naaytracker-v37';
+// Service Worker para Mt2App (Offline-First Ultra Privado)
+const CACHE_NAME = 'mt2app-v40';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

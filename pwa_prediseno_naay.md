@@ -14,7 +14,7 @@
 
 ## 1. Concepto Central
 
-**Nombre propuesto:** `NaayTracker` o `DSS Manager`
+**Nombre propuesto:** `Mt2App` o `DSS Manager`
 **Stack sugerido:** HTML + CSS + Vanilla JS *(o React si prefieres componentes)* + Workbox (Service Worker)
 **Instalación:** PWA — sin Play Store ni App Store. El usuario abre la URL y pulsa "Añadir a pantalla de inicio".
 
@@ -81,7 +81,7 @@ El usuario puede alternar instantáneamente entre **4 niveles de perspectiva** c
 
 ```
 ╔══════════════════════════════════════════════════════╗
-║  NaayTracker     [⚡ DIARIO] [📅 SEM] [📆 MES] [🌍 GLOB]║
+║  Mt2App     [⚡ DIARIO] [📅 SEM] [📆 MES] [🌍 GLOB]║
 ║──────────────────────────────────────────────────────║
 ║  HOY: Jueves 30 de Octubre   •   Meta diaria: 20 Cors ║
 ║                                                      ║
@@ -110,7 +110,7 @@ El usuario puede alternar instantáneamente entre **4 niveles de perspectiva** c
 
 ```
 ╔══════════════════════════════════════════════════════╗
-║  NaayTracker     [⚡ DIARIO] [📅 SEM] [📆 MES] [🌍 GLOB]║
+║  Mt2App     [⚡ DIARIO] [📅 SEM] [📆 MES] [🌍 GLOB]║
 ║──────────────────────────────────────────────────────║
 ║  SEMANA 14 de 36  •  Semáforo actual: 🟢 VERDE       ║
 ║                                                      ║
@@ -139,7 +139,7 @@ El usuario puede alternar instantáneamente entre **4 niveles de perspectiva** c
 
 ```
 ╔══════════════════════════════════════════════════════╗
-║  NaayTracker     [⚡ DIARIO] [📅 SEM] [📆 MES] [🌍 GLOB]║
+║  Mt2App     [⚡ DIARIO] [📅 SEM] [📆 MES] [🌍 GLOB]║
 ║──────────────────────────────────────────────────────║
 ║  MES 4 (Semanas 13 a 16)  •  Hito: Fin Ciclo de Clase║
 ║                                                      ║
@@ -169,7 +169,7 @@ El usuario puede alternar instantáneamente entre **4 niveles de perspectiva** c
 
 ```
 ╔══════════════════════════════════════════════════════╗
-║  NaayTracker     [⚡ DIARIO] [📅 SEM] [📆 MES] [🌍 GLOB]║
+║  Mt2App     [⚡ DIARIO] [📅 SEM] [📆 MES] [🌍 GLOB]║
 ║──────────────────────────────────────────────────────║
 ║  PROGRESO TOTAL: 1.960 / 5.040 Cor Draconis (39%)    ║
 ║  ██████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ║

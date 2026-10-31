@@ -1,5 +1,5 @@
 /**
- * NaayTracker — Motor Principal de Lógica, Temporizadores en Vivo y Economía Dual (Wons / Yang)
+ * Mt2App — Motor Principal de Lógica, Temporizadores en Vivo y Economía Dual (Wons / Yang)
  * Enfoque: Alquimia DSS, Control de Objetivos y Eventos en Tiempo Real
  */
 
@@ -49,7 +49,7 @@ let EVENTOS_API_ERROR = false;
  */
 let EVENTOS_API_PROMISE = null;
 let EVENTOS_API_LAST_ERROR = 0;
-const EVENTOS_API_STORAGE_KEY = "naaytracker_eventos_cache";
+const EVENTOS_API_STORAGE_KEY = "mt2app_eventos_cache";
 const EVENTOS_API_REINTENTO_MS = 5 * 60 * 1000;
 
 function leerEventosCacheLocal() {
@@ -83,10 +83,10 @@ async function cargarEventosAPI() {
       try {
         localStorage.setItem(EVENTOS_API_STORAGE_KEY, JSON.stringify(EVENTOS_API_CACHE));
       } catch (e) {}
-      console.log(`[NaayTracker] ${EVENTOS_API_CACHE.length} eventos cargados.`);
+      console.log(`[Mt2App] ${EVENTOS_API_CACHE.length} eventos cargados.`);
       return EVENTOS_API_CACHE;
     } catch (err) {
-      console.warn("[NaayTracker] API no disponible:", err.message);
+      console.warn("[Mt2App] API no disponible:", err.message);
       EVENTOS_API_ERROR = true;
       EVENTOS_API_LAST_ERROR = Date.now();
       return leerEventosCacheLocal();
@@ -350,7 +350,7 @@ const HITOS_PLAN_MAESTRO = [
   { id: "p6", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Refinar lote de Antiguas con Jitter y obtener las primeras 2 a 4 Legendarias", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p7", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Acumular banco de 8 Legendarias antes de intentar Míticas (evitar quiebra)", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p8", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Acumular reserva de 12 a 16 Legendarias (materia prima para fabricar Míticas)", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p9", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Fusionar y obtener el primer Rubí Mítico Mate (equipar provisionalmente para +daño)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p9", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Obtener el primer Rubí Mítico Mate", completado: false, cat: "alquimia", esHitoPlan: true },
     { id: "p10", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "REGLA DE ORO: NO fusionar pureza con solo 2 Míticas; iniciar banco de reserva", completado: false, cat: "alquimia", esHitoPlan: true },
 
   // ETAPA 3: Protocolo 4 Míticas ➔ Claridad Clara & Límpida (Semanas 17-24)
@@ -358,18 +358,18 @@ const HITOS_PLAN_MAESTRO = [
   { id: "p12", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Subir Rubí a Claridad Clara absorbiendo posibles fallos (~50%) con Stop-Loss", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p13", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Acumular banco de 4 Míticas Claras (equivale a 8 Míticas Mate exitosas)", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p14", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Alcanzar Claridad Límpida en el Rubí manteniendo una piedra de respaldo activa", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p15", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Financiar primera gran pieza de equipo con mercado de alquimia secundaria (30-50W)", completado: false, cat: "equipo", esHitoPlan: true },
+  { id: "p15", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Reinvertir 30-50W en Antiguas para acelerar la pirámide. Comprar equipo solo si mejora claramente tu farmeo", completado: false, cat: "alquimia", esHitoPlan: true },
 
   // ETAPA 4: La Pirámide a Brillante (Semanas 25-32)
   { id: "p16", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Construir pirámide: Fabricar lote de 4 Míticas Límpidas para asalto a Brillante", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p17", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Alcanzar Claridad Brillante en Rubí con protocolo estricto de Stop-Loss", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p18", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Mantener siempre 1 Rubí de combate equipado mientras se refinan gemas en almacén", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p19", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Iniciar segunda gema de la Rueda (Jade o Diamante) con excedente de farmeo", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p18", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Fabricar una segunda Mítica Brillante de respaldo antes de intentar Excelente", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p19", etapa: 4, etapaNombre: "Etapa 4 (Sem 25-32)", texto: "Acumular reserva de alubias verdes para el asalto a +6", completado: false, cat: "alquimia", esHitoPlan: true },
 
   // ETAPA 5: El Asalto Final a Excelente +6 (Semanas 33-36)
-  { id: "p20", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Acumular lote crítico para Excelente: 2 Brillantes (+ reserva de Míticas) para tasa ~30-35%", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p21", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "¡Conseguir Rubí Mítico Excelente! (Culminación de la pirámide de ~16-30 Míticas)", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p22", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Subir Rubí Excelente a +6 con reserva mínima de 20 alubias verdes", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p20", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Obtener el Rubí Mítico Excelente fusionando 2 Brillantes con Stop-Loss", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p21", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Revisar los bonus del Rubí Excelente: si no son los deseados, no invertir alubias todavía y decidir entre aceptarlo, venderlo o preparar otra piedra", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p22", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Subir el Rubí Excelente a +6 solo si los bonus son aceptables", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p23", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Culminar la Meta de Equipo Principal con el poder del Rubí Excelente +6", completado: false, cat: "equipo", esHitoPlan: true }
 ];
 
@@ -381,7 +381,7 @@ const OBJETIVO_ALQUIMIA_DEFAULT = {
 };
 
 const DEFAULT_STATE = {
-  version: 7,
+  version: 8,
   perfil: {
     nombre: "Mi Cuenta",
     servidor: "Ruby"
@@ -699,7 +699,16 @@ function mergeStateWithDefaults(parsed) {
       };
     });
 
+  // La etapa 4 y 5 cambiaron de significado: reiniciar esos hitos una sola vez.
+  if ((parsed.version || 0) < 8) {
+    ["p18", "p19", "p20", "p21", "p22"].forEach(id => {
+      const objetivo = merged.objetivos.find(o => o.id === id);
+      if (objetivo) objetivo.completado = false;
+    });
+  }
+
   normalizarProgresoPlanObjetivos(merged.objetivos);
+  merged.version = DEFAULT_STATE.version;
 
   if (merged.objetivoAlquimia && merged.objetivoAlquimia.actual) {
     const actual = merged.objetivoAlquimia.actual;
@@ -721,10 +730,15 @@ function mergeStateWithDefaults(parsed) {
 }
 
 function loadState() {
-  const saved = localStorage.getItem("naaytracker_state");
+  const saved = localStorage.getItem("mt2app_state");
   if (!saved) return mergeStateWithDefaults(null);
   try {
-    return mergeStateWithDefaults(JSON.parse(saved));
+    const parsed = JSON.parse(saved);
+    const merged = mergeStateWithDefaults(parsed);
+    if (parsed.version !== merged.version) {
+      localStorage.setItem("mt2app_state", JSON.stringify(merged));
+    }
+    return merged;
   } catch (e) {
     return mergeStateWithDefaults(null);
   }
@@ -777,7 +791,7 @@ function cambiarConsumible(clave, delta) {
 }
 
 function saveState() {
-  localStorage.setItem("naaytracker_state", JSON.stringify(STATE));
+  localStorage.setItem("mt2app_state", JSON.stringify(STATE));
   renderAll();
   if (typeof registrarCambioLocal === "function") registrarCambioLocal();
 }
@@ -2259,7 +2273,7 @@ async function enviarNotificacion(titulo, cuerpo, tag) {
     body: cuerpo,
     icon: "./icon-192.png",
     badge: "./icon-192.png",
-    tag: tag ? `naaytracker-${tag}` : "naaytracker-evento"
+    tag: tag ? `mt2app-${tag}` : "mt2app-evento"
   };
 
   try {
@@ -2272,7 +2286,7 @@ async function enviarNotificacion(titulo, cuerpo, tag) {
     }
     new Notification(titulo, opciones);
   } catch (e) {
-    console.warn("[NaayTracker] No se pudo mostrar la notificación:", e);
+    console.warn("[Mt2App] No se pudo mostrar la notificación:", e);
   }
 }
 
@@ -3116,7 +3130,7 @@ function exportarDatosJSON() {
   const dlAnchor = document.createElement("a");
   const fecha = new Date().toISOString().split("T")[0];
   dlAnchor.setAttribute("href", dataStr);
-  dlAnchor.setAttribute("download", `NaayTracker_Backup_${fecha}.json`);
+  dlAnchor.setAttribute("download", `Mt2App_Backup_${fecha}.json`);
   dlAnchor.click();
 }
 
@@ -3130,7 +3144,7 @@ function importarDatosJSON(input) {
       const data = JSON.parse(e.target.result);
       if (!data || typeof data !== "object" || Array.isArray(data) ||
           (!("corsTotal" in data) && !("perfil" in data) && !("version" in data))) {
-        throw new Error("El archivo no parece un respaldo de NaayTracker.");
+        throw new Error("El archivo no parece un respaldo de Mt2App.");
       }
       STATE = mergeStateWithDefaults(data);
       saveState();
@@ -3152,7 +3166,7 @@ function copiarCodigoTexto() {
 }
 
 function restaurarDesdeCodigoTexto() {
-  const code = prompt("Pega aquí tu código de respaldo de NaayTracker:");
+  const code = prompt("Pega aquí tu código de respaldo de Mt2App:");
   if (code) {
     try {
       const json = decodeURIComponent(escape(atob(code.trim())));
@@ -3176,10 +3190,10 @@ function restablecerTodosLosDatos() {
   if (typeof desconectarSyncSilencioso === "function") {
     desconectarSyncSilencioso();
   } else {
-    localStorage.removeItem("naaytracker_sync");
+    localStorage.removeItem("mt2app_sync");
   }
 
-  localStorage.removeItem("naaytracker_state");
+  localStorage.removeItem("mt2app_state");
   STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
   STATE.ultimoDia = fechaJuegoISO();
   STATE.inicioSemana = inicioSemanaJuegoISO();
@@ -3225,9 +3239,9 @@ function instalarPWA() {
   } else {
     const esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     if (esIOS) {
-      alert("📱 Para instalar NaayTracker en iPhone:\n\n1. Toca el botón 'Compartir' (el icono con una flecha hacia arriba ⎋ o ⬆️ en Safari).\n2. Baja y pulsa en 'Agregar al inicio' (+).\n3. ¡Listo! Se abrirá como una aplicación nativa.");
+      alert("📱 Para instalar Mt2App en iPhone:\n\n1. Toca el botón 'Compartir' (el icono con una flecha hacia arriba ⎋ o ⬆️ en Safari).\n2. Baja y pulsa en 'Agregar al inicio' (+).\n3. ¡Listo! Se abrirá como una aplicación nativa.");
     } else {
-      alert("📱 Para instalar NaayTracker en Android:\n\n1. Pulsa en los tres puntos (⋮) arriba a la derecha en Chrome.\n2. Selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'.\n3. Si ya la tienes instalada, búscala en tu pantalla de inicio.");
+      alert("📱 Para instalar Mt2App en Android:\n\n1. Pulsa en los tres puntos (⋮) arriba a la derecha en Chrome.\n2. Selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'.\n3. Si ya la tienes instalada, búscala en tu pantalla de inicio.");
     }
   }
 }

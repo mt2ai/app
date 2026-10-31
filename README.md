@@ -1,6 +1,6 @@
-# 💎 NaayTracker — Metin2 DSS Companion & Roadmap Tracker (PWA)
+# 💎 Mt2App — Metin2 DSS Companion & Roadmap Tracker (PWA)
 
-**NaayTracker** es una Progressive Web App (PWA) 100% offline-first diseñada para jugadores de Metin2. Proporciona una suite completa para la gestión de la **Alquimia de Piedras Dragón (DSS)**, control de **rutinas diarias de fragmenteros**, seguimiento de **objetivos del plan de 36 semanas**, calculadora probabilística anti-quiebra y radar en vivo de **eventos del servidor sincronizados con tu zona horaria local**.
+**Mt2App** es una Progressive Web App (PWA) 100% offline-first diseñada para jugadores de Metin2. Proporciona una suite completa para la gestión de la **Alquimia de Piedras Dragón (DSS)**, control de **rutinas diarias de fragmenteros**, seguimiento de **objetivos del plan de 36 semanas**, calculadora probabilística anti-quiebra y radar en vivo de **eventos del servidor sincronizados con tu zona horaria local**.
 
 ---
 

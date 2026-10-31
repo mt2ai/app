@@ -1,6 +1,6 @@
 {
-  "name": "NaayTracker — Metin2 Companion",
-  "short_name": "NaayTracker",
+  "name": "Mt2App — Metin2 Companion",
+  "short_name": "Mt2App",
   "description": "App ultra-privada para seguimiento de alquimia, eventos y progreso en Metin2",
   "start_url": "./index.html",
   "scope": "./",

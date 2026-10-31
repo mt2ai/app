@@ -1,8 +1,8 @@
 /**
- * NaayTracker — Sincronización opcional con Supabase.
+ * Mt2App — Sincronización opcional con Supabase.
  * El código de 12 caracteres es la llave: no hay cuentas ni contraseñas.
  */
-const SYNC_KEY = "naaytracker_sync";
+const SYNC_KEY = "mt2app_sync";
 const SYNC_ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const SYNC_INTERVALO_MS = 30000;
 
