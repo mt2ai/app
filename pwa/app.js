@@ -365,6 +365,16 @@ const DEFAULT_STATE = {
     eventos: {},
     notificados: {}
   },
+  fusionStats: {
+    totalExitos: 0,
+    totalFallos: 0,
+    porTipo: {
+      antiguas: { exitos: 0, fallos: 0 },
+      legendarias: { exitos: 0, fallos: 0 },
+      claridad: { exitos: 0, fallos: 0 },
+      alubia: { exitos: 0, fallos: 0 }
+    }
+  },
   finanzas: {
     saldoWons: 0,
     saldoYangKK: 0, // 1 Won = 100kk
@@ -416,6 +426,24 @@ function mergeStateWithDefaults(parsed) {
   if (merged.finanzas) {
     if (merged.finanzas.precioCompraRubiWons === undefined) merged.finanzas.precioCompraRubiWons = 4.5;
     if (merged.finanzas.precioCompraRubiKK === undefined) merged.finanzas.precioCompraRubiKK = 0;
+  }
+  // Normalizar estadísticas de fusión
+  if (!merged.fusionStats || typeof merged.fusionStats !== "object" || Array.isArray(merged.fusionStats)) {
+    merged.fusionStats = JSON.parse(JSON.stringify(DEFAULT_STATE.fusionStats));
+  } else {
+    const statsPrevias = merged.fusionStats;
+    merged.fusionStats = Object.assign({}, DEFAULT_STATE.fusionStats, statsPrevias, {
+      porTipo: Object.assign({}, DEFAULT_STATE.fusionStats.porTipo, statsPrevias.porTipo || {})
+    });
+    Object.keys(DEFAULT_STATE.fusionStats.porTipo).forEach(tipo => {
+      const prev = merged.fusionStats.porTipo[tipo] || {};
+      merged.fusionStats.porTipo[tipo] = {
+        exitos: Math.max(0, parseInt(prev.exitos, 10) || 0),
+        fallos: Math.max(0, parseInt(prev.fallos, 10) || 0)
+      };
+    });
+    merged.fusionStats.totalExitos = Math.max(0, parseInt(merged.fusionStats.totalExitos, 10) || 0);
+    merged.fusionStats.totalFallos = Math.max(0, parseInt(merged.fusionStats.totalFallos, 10) || 0);
   }
   // Normalizar preferencias de notificaciones de eventos
   if (!merged.notificaciones || typeof merged.notificaciones !== "object" || Array.isArray(merged.notificaciones)) {
@@ -933,6 +961,50 @@ function setJitterStatus(texto) {
   if (el) el.textContent = texto;
 }
 
+function registrarIntentoFusion(tipo, esExito) {
+  if (!STATE.fusionStats) {
+    STATE.fusionStats = JSON.parse(JSON.stringify(DEFAULT_STATE.fusionStats));
+  }
+  const stats = STATE.fusionStats;
+  if (!stats.porTipo[tipo]) stats.porTipo[tipo] = { exitos: 0, fallos: 0 };
+
+  if (esExito) {
+    stats.totalExitos++;
+    stats.porTipo[tipo].exitos++;
+  } else {
+    stats.totalFallos++;
+    stats.porTipo[tipo].fallos++;
+  }
+}
+
+function renderFusionStats() {
+  const donut = document.getElementById("fusionDonutFill");
+  const rateEl = document.getElementById("fusionRate");
+  const winsEl = document.getElementById("fusionWins");
+  const lossesEl = document.getElementById("fusionLosses");
+  const totalEl = document.getElementById("fusionTotal");
+  const hintEl = document.getElementById("fusionStatsHint");
+  if (!donut || !rateEl) return;
+
+  const stats = STATE.fusionStats || { totalExitos: 0, totalFallos: 0 };
+  const exitos = stats.totalExitos || 0;
+  const fallos = stats.totalFallos || 0;
+  const total = exitos + fallos;
+  const rate = total ? Math.round((exitos / total) * 100) : 0;
+
+  const radio = 15;
+  const circunferencia = 2 * Math.PI * radio;
+  const relleno = (rate / 100) * circunferencia;
+  donut.setAttribute("stroke-dasharray", `${relleno} ${circunferencia}`);
+  donut.style.stroke = total === 0 ? "#2a2f3a" : (rate >= 50 ? "var(--green)" : "var(--gold)");
+
+  if (rateEl) rateEl.textContent = total ? `${rate}%` : "—";
+  if (winsEl) winsEl.textContent = exitos;
+  if (lossesEl) lossesEl.textContent = fallos;
+  if (totalEl) totalEl.textContent = `${total} intento${total === 1 ? "" : "s"}`;
+  if (hintEl) hintEl.textContent = total ? `${exitos} de ${total}` : "Sin intentos";
+}
+
 function ejecutarIntentoAlquimia(esExito) {
   if (stopLossActive) {
     alert("🚨 STOP-LOSS ACTIVO: Espera a que termine la pausa de 60 segundos.");
@@ -975,6 +1047,9 @@ function ejecutarIntentoAlquimia(esExito) {
       return;
     }
   }
+
+  registrarIntentoFusion(tipoIntento, esExito);
+  if (!autoSync) saveState();
 
   let detalleCambio = "";
 
@@ -1166,6 +1241,7 @@ function renderAll() {
   renderObjetivos();
   renderFinanzas();
   renderCalculadoraLuzVerde();
+  renderFusionStats();
   renderEstadoNotificaciones();
   // Vista de eventos (sólo si está activa para no hacer fetch innecesario)
   if (activeView === "view-eventos") {

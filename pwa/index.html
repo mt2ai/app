@@ -263,6 +263,42 @@
           <span id="jitterCountdown" class="jitter-digits">00:00</span>
         </div>
         <p id="jitterStatus" class="jitter-status"></p>
+
+        <!-- RENDIMIENTO DE FUSIONES -->
+        <div class="fusion-stats">
+          <div class="chart-head">
+            <span>Rendimiento de fusiones</span>
+            <span id="fusionStatsHint">Sin intentos</span>
+          </div>
+          <div class="fusion-stats-body">
+            <div class="fusion-donut">
+              <svg viewBox="0 0 36 36" aria-hidden="true">
+                <circle class="donut-track" cx="18" cy="18" r="15"></circle>
+                <circle id="fusionDonutFill" class="donut-fill" cx="18" cy="18" r="15"></circle>
+              </svg>
+              <div class="donut-center">
+                <strong id="fusionRate">—</strong>
+                <span>éxito</span>
+              </div>
+            </div>
+            <div class="fusion-legend">
+              <div class="fusion-legend-row">
+                <span class="dot success"></span>
+                <span>Éxitos</span>
+                <strong id="fusionWins">0</strong>
+              </div>
+              <div class="fusion-legend-row">
+                <span class="dot fail"></span>
+                <span>Fallos</span>
+                <strong id="fusionLosses">0</strong>
+              </div>
+              <div class="fusion-total">
+                <span>Intentos totales</span>
+                <span id="fusionTotal">0 intentos</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
