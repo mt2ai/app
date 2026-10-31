@@ -1093,6 +1093,73 @@ function renderObjetivoAlquimia() {
   `;
 }
 
+const MENSAJES_SORPRESA = [
+  "«{nombre}», lo lograste. Después de tantos Cors, fusiones y fallos, tu piedra alcanzó la máxima pureza. No fue suerte: fue constancia.",
+  "Lo conseguiste, {nombre}. Esta Alquimia Excelente lleva tu nombre. Cada tanda de fragmenteros, cada intento fallido y cada madrugada valieron la pena.",
+  "Oficialmente ya no eres un novato, {nombre}. Has sobrevivido al RNG, a los fallos y a las subidas de nivel. Tu Alquimia Excelente ya es parte de tu historia.",
+  "El último secreto del alquimista es tuyo, {nombre}. Pocos llegan hasta aquí. Has convertido paciencia en una piedra Excelente.",
+  "Máxima pureza alcanzada. {nombre}, tu Alquimia Excelente está lista. Este logro queda guardado con fecha, récord de tiempo y las 23 etapas completadas.",
+  "Los que te vieron empezar ya no reconocen al alquimista en que te convertiste, {nombre}. Esta Excelente es la prueba.",
+  "No todos los días se forja una leyenda. Hoy, {nombre}, la tuya tiene forma de Alquimia Excelente.",
+  "Tus fragmenteros hicieron su parte. Tú hiciste el resto. Esta Alquimia Excelente lleva la firma de {nombre}."
+];
+
+function crearConfetiHtml() {
+  const colores = ["#c9a227", "#3fb27f", "#5dade2", "#e05a4f", "#e8eaed"];
+  return Array.from({ length: 20 }, (_, i) => {
+    const left = Math.round(Math.random() * 100);
+    const delay = (Math.random() * 0.6).toFixed(2);
+    const rot = Math.round(Math.random() * 360);
+    const color = colores[i % colores.length];
+    return `<span style="--x:${left}%;--delay:${delay}s;--rotate:${rot}deg;--color:${color}"></span>`;
+  }).join("");
+}
+
+function crearSorpresaHtml() {
+  const nombre = escapeHtml((STATE.perfil && STATE.perfil.nombre) || "Alquimista");
+  const plantilla = MENSAJES_SORPRESA[Math.floor(Math.random() * MENSAJES_SORPRESA.length)];
+  const mensaje = plantilla.replace(/\{nombre\}/g, nombre);
+  const fecha = formatearFechaCorta(fechaJuegoISO());
+
+  return `
+    <div class="surprise-hero">
+      <div class="surprise-confetti" aria-hidden="true">${crearConfetiHtml()}</div>
+      <span class="surprise-icon">${svgIcon("award", "surprise-award")}</span>
+      <div class="surprise-kicker">Logro desbloqueado</div>
+      <div class="surprise-title">Alquimia Excelente</div>
+      <p class="surprise-message">${mensaje}</p>
+      <div class="surprise-meta">23 / 23 objetivos · ${escapeHtml(fecha)}</div>
+    </div>
+  `;
+}
+
+function esFechaEspecialYatsubi(d = new Date()) {
+  return fechaJuegoISO(d).slice(5) === "06-22";
+}
+
+function abrirCartaYatsubi() {
+  const carta = document.getElementById("modalCartaYatsubi");
+  if (carta) carta.classList.add("active");
+}
+
+function continuarDesdeCartaYatsubi() {
+  cerrarModal("modalCartaYatsubi");
+  mostrarModalCompletado();
+}
+
+function mostrarModalCompletado() {
+  const actual = objetivoAlquimiaActual();
+  if (!actual) return;
+
+  const sig = document.getElementById("objetivoCompletadoSiguiente");
+  const sorpresa = document.getElementById("surpriseBox");
+  if (sig) sig.textContent = "Comenzar una nueva alquimia reiniciará los objetivos del plan para volver a progresar desde el inicio.";
+  if (sorpresa) sorpresa.innerHTML = crearSorpresaHtml();
+
+  const modal = document.getElementById("modalObjetivoCompletado");
+  if (modal) modal.classList.add("active");
+}
+
 function marcarObjetivoCompletado() {
   const actual = objetivoAlquimiaActual();
   if (!actual) return;
@@ -1102,13 +1169,12 @@ function marcarObjetivoCompletado() {
     return;
   }
 
-  const texto = document.getElementById("objetivoCompletadoTexto");
-  const sig = document.getElementById("objetivoCompletadoSiguiente");
-  if (texto) texto.textContent = actual.titulo;
-  if (sig) sig.textContent = "Comenzar una nueva alquimia reiniciará los objetivos del plan para volver a progresar desde el inicio.";
+  if (esFechaEspecialYatsubi()) {
+    abrirCartaYatsubi();
+    return;
+  }
 
-  const modal = document.getElementById("modalObjetivoCompletado");
-  if (modal) modal.classList.add("active");
+  mostrarModalCompletado();
 }
 
 function archivarObjetivoActual() {

@@ -602,6 +602,29 @@
     </div>
   </div>
 
+  <!-- MODAL: CARTA ESPECIAL 22 DE JUNIO -->
+  <div id="modalCartaYatsubi" class="modal-overlay">
+    <div class="modal-card letter-modal">
+      <button class="modal-close letter-close" onclick="cerrarModal('modalCartaYatsubi')" aria-label="Cerrar"><span data-icon="x"></span></button>
+
+      <div class="letter-kicker">22 de junio · Un mensaje para ella</div>
+      <h3 class="letter-title">Un secreto detrás de NaayTracker</h3>
+
+      <div class="letter-body">
+        <p>Si estás leyendo esto, es porque hoy completaste tu Alquimia Excelente. Y hoy, 22 de junio, quiero contarte el secreto que llevo escondido en cada línea de esta app.</p>
+        <p>NaayTracker lo hice para mi esposa. Ella entró a Metin2 por mi insistencia, porque yo quería compartir con ella el mundo que tanto amaba. Su primer personaje fue Yatsubi. La vi llorar cuando la hackearon, reír cuando subió su primer arma a +9 y la miré cada día como nunca nadie lo hizo. La acompañé en cada paso. O al menos lo intenté, porque no siempre supe decirle todo lo que significaba para mí.</p>
+        <p>Si esta app sigue viva después de tantos años, es porque ella le dio sentido. Este logro también lleva un pedacito de Yatsubi, de nuestras risas y de las noches que pasamos frente a la pantalla. Y detrás de cada línea hay un esposo que, después de todos estos años, la sigue eligiendo sin dudar.</p>
+        <p>Gracias por llegar hasta aquí. Y gracias a ella, por haberme dejado entrar a su mundo.</p>
+      </div>
+
+      <div class="letter-signature">Con todo mi amor,<br><span>su esposo.</span></div>
+
+      <button class="btn-primary letter-continue" onclick="continuarDesdeCartaYatsubi()">
+        Continuar
+      </button>
+    </div>
+  </div>
+
   <!-- MODAL: OBJETIVO COMPLETADO -->
   <div id="modalObjetivoCompletado" class="modal-overlay">
     <div class="modal-card goal-complete-modal">
@@ -610,9 +633,9 @@
         <button class="modal-close" onclick="cerrarModal('modalObjetivoCompletado')" aria-label="Cerrar"><span data-icon="x"></span></button>
       </div>
 
+      <div id="surpriseBox"></div>
+
       <div class="goal-complete-info">
-        <span class="goal-status done">Satisfecho</span>
-        <strong id="objetivoCompletadoTexto"></strong>
         <p id="objetivoCompletadoSiguiente"></p>
       </div>
 

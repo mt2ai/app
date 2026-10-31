@@ -1,5 +1,5 @@
 // Service Worker para NaayTracker (Offline-First Ultra Privado)
-const CACHE_NAME = 'naaytracker-v34';
+const CACHE_NAME = 'naaytracker-v37';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
