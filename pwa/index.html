@@ -388,37 +388,37 @@
 
   <!-- BARRA DE NAVEGACIÓN INFERIOR (COMPACTA Y 100% RESPONSIVE) -->
   <nav class="bottom-nav">
-    <button class="nav-item active" data-view="view-dashboard" onclick="switchView('view-dashboard')">
+    <button class="nav-item active" data-view="view-dashboard" onclick="switchView('view-dashboard')" aria-label="Inicio">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8Z"></path></svg>
       </span>
       <span>Inicio</span>
     </button>
-    <button class="nav-item" data-view="view-granjeros" onclick="switchView('view-granjeros')">
+    <button class="nav-item" data-view="view-granjeros" onclick="switchView('view-granjeros')" aria-label="Fragmenteros">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0"></path><path d="M16 5.3a3 3 0 0 1 0 5.4"></path><path d="M17.5 14.5A5.5 5.5 0 0 1 21 20"></path></svg>
       </span>
       <span>Cors</span>
     </button>
-    <button class="nav-item" data-view="view-dss" onclick="switchView('view-dss')">
+    <button class="nav-item" data-view="view-dss" onclick="switchView('view-dss')" aria-label="Almacén DSS">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Z"></path><path d="M3 7.5V17l9 4 9-4V7.5"></path><path d="M12 12v9"></path></svg>
       </span>
       <span>Almacén</span>
     </button>
-    <button class="nav-item" data-view="view-alquimia" onclick="switchView('view-alquimia')">
+    <button class="nav-item" data-view="view-alquimia" onclick="switchView('view-alquimia')" aria-label="Asistente de fusión">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2h6"></path><path d="M10 2v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V2"></path><path d="M7.5 15h9"></path></svg>
       </span>
       <span>Fusión</span>
     </button>
-    <button class="nav-item" data-view="view-finanzas" onclick="switchView('view-finanzas')">
+    <button class="nav-item" data-view="view-finanzas" onclick="switchView('view-finanzas')" aria-label="Objetivos y mercado">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="4"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle></svg>
       </span>
       <span>Metas</span>
     </button>
-    <button class="nav-item" data-view="view-eventos" onclick="switchView('view-eventos')">
+    <button class="nav-item" data-view="view-eventos" onclick="switchView('view-eventos')" aria-label="Eventos">
       <span class="nav-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 10h18"></path></svg>
       </span>
@@ -428,20 +428,20 @@
 
   <!-- MODAL DE AJUSTES Y RESPALDO -->
   <div id="modalAjustes" class="modal-overlay">
-    <div class="modal-card">
+    <div class="modal-card settings-modal">
       <div class="modal-header">
-        <h3 style="color: var(--gold); font-size: 0.95rem;">Configuración & Respaldo</h3>
-        <button class="modal-close" onclick="cerrarModal('modalAjustes')"><span data-icon="x"></span></button>
+        <h3>Configuración & Respaldo</h3>
+        <button class="modal-close" onclick="cerrarModal('modalAjustes')" aria-label="Cerrar"><span data-icon="x"></span></button>
       </div>
 
-      <div style="margin-bottom: 12px;">
-        <label style="font-size: 0.75rem; color: var(--text-muted);">Nombre de la Cuenta / Personaje:</label>
-        <input type="text" id="cfgNombre" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 7px; border-radius: var(--radius-sm); margin-top: 3px;" value="Naay" placeholder="Nombre de tu cuenta">
+      <div class="form-group">
+        <label for="cfgNombre">Nombre de la Cuenta / Personaje</label>
+        <input type="text" id="cfgNombre" value="Naay" placeholder="Nombre de tu cuenta">
       </div>
 
-      <div style="margin-bottom: 12px;">
-        <label style="font-size: 0.75rem; color: var(--text-muted);">Servidor de Juego:</label>
-        <select id="cfgServidor" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 7px; border-radius: var(--radius-sm); margin-top: 3px;">
+      <div class="form-group">
+        <label for="cfgServidor">Servidor de Juego</label>
+        <select id="cfgServidor">
           <option value="Ruby">Ruby (Grupo Onyx)</option>
           <option value="Sapphire">Sapphire</option>
           <option value="Iberia">Iberia (España)</option>
@@ -452,54 +452,49 @@
         </select>
       </div>
 
-      <div style="margin-bottom: 14px;">
-        <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 4px;">
-          <span class="label-icon" data-icon="users"></span> Nombres de tus 4 Fragmenteros:
-        </label>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-          <input type="text" id="cfgGranjero1" style="background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 6px; border-radius: var(--radius-sm); font-size: 0.78rem;" placeholder="Fragmentero 1">
-          <input type="text" id="cfgGranjero2" style="background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 6px; border-radius: var(--radius-sm); font-size: 0.78rem;" placeholder="Fragmentero 2">
-          <input type="text" id="cfgGranjero3" style="background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 6px; border-radius: var(--radius-sm); font-size: 0.78rem;" placeholder="Fragmentero 3">
-          <input type="text" id="cfgGranjero4" style="background: var(--bg-input); border: 1px solid var(--border-card); color: #fff; padding: 6px; border-radius: var(--radius-sm); font-size: 0.78rem;" placeholder="Fragmentero 4">
+      <div class="form-group">
+        <label class="form-label"><span class="label-icon" data-icon="users"></span> Nombres de tus 4 Fragmenteros</label>
+        <div class="farmer-inputs">
+          <input type="text" id="cfgGranjero1" placeholder="Fragmentero 1">
+          <input type="text" id="cfgGranjero2" placeholder="Fragmentero 2">
+          <input type="text" id="cfgGranjero3" placeholder="Fragmentero 3">
+          <input type="text" id="cfgGranjero4" placeholder="Fragmentero 4">
         </div>
       </div>
 
-      <button class="btn-primary" onclick="guardarAjustesPerfil()" style="margin-bottom: 12px; padding: 9px; font-size: 0.85rem;">
+      <button class="btn-primary settings-save" onclick="guardarAjustesPerfil()">
         <span data-icon="save"></span> Guardar Cambios
       </button>
 
-      <hr style="border: 0; border-top: 1px solid var(--border-card); margin: 12px 0;">
+      <details class="settings-backup">
+        <summary><span class="label-icon" data-icon="box"></span> Respaldo & PWA (100% offline)</summary>
+        <div class="settings-actions">
+          <button class="btn-primary" onclick="instalarPWA()">
+            <span data-icon="smartphone"></span> Instalar App en el Teléfono (PWA)
+          </button>
 
-      <h4 style="color: var(--text-main); font-size: 0.82rem; margin-bottom: 8px;">Respaldo & PWA (100% Offline)</h4>
-      
-      <div style="display: flex; flex-direction: column; gap: 6px;">
-        <button class="btn-primary" onclick="instalarPWA()" style="justify-content: center; padding: 8px; background: rgba(52, 152, 219, 0.2); border: 1px solid var(--blue); color: #fff; font-weight: 700; margin-top: 0; font-size: 0.8rem;">
-          <span data-icon="smartphone"></span> Instalar App en el Teléfono (PWA)
-        </button>
+          <button class="btn-complete done" onclick="exportarDatosJSON()">
+            <span data-icon="download"></span> Descargar Respaldo (.json)
+          </button>
 
-        <button class="btn-complete done" onclick="exportarDatosJSON()" style="justify-content: center; padding: 8px; font-size: 0.78rem;">
-          <span data-icon="download"></span> Descargar Respaldo (.json)
-        </button>
-        
-        <label class="btn-complete" style="justify-content: center; padding: 8px; cursor: pointer; text-align: center; font-size: 0.78rem;">
-          <span data-icon="upload"></span> Restaurar desde (.json)
-          <input type="file" accept=".json" onchange="importarDatosJSON(this)" style="display: none;">
-        </label>
+          <label class="btn-complete">
+            <span data-icon="upload"></span> Restaurar desde (.json)
+            <input type="file" accept=".json" onchange="importarDatosJSON(this)" style="display: none;">
+          </label>
 
-        <button class="btn-complete" onclick="copiarCodigoTexto()" style="justify-content: center; padding: 8px; font-size: 0.78rem;">
-          <span data-icon="copy"></span> Copiar Código al Portapapeles
-        </button>
+          <button class="btn-complete" onclick="copiarCodigoTexto()">
+            <span data-icon="copy"></span> Copiar Código al Portapapeles
+          </button>
 
-        <button class="btn-complete" onclick="restaurarDesdeCodigoTexto()" style="justify-content: center; padding: 8px; font-size: 0.78rem;">
-          <span data-icon="upload"></span> Pegar Código de Datos
-        </button>
+          <button class="btn-complete" onclick="restaurarDesdeCodigoTexto()">
+            <span data-icon="upload"></span> Pegar Código de Datos
+          </button>
 
-        <hr style="border: 0; border-top: 1px solid rgba(231, 76, 60, 0.3); margin: 8px 0 4px 0;">
-
-        <button class="btn-complete" onclick="restablecerTodosLosDatos()" style="justify-content: center; padding: 8px; background: rgba(231, 76, 60, 0.15); border: 1px solid var(--ruby); color: #ff6b6b; font-weight: 700; font-size: 0.78rem;">
-          <span data-icon="trash"></span> Borrar Todos los Datos (Limpieza Total)
-        </button>
-      </div>
+          <button class="btn-complete btn-danger" onclick="restablecerTodosLosDatos()">
+            <span data-icon="trash"></span> Borrar Todos los Datos (Limpieza Total)
+          </button>
+        </div>
+      </details>
     </div>
   </div>
 

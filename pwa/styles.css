@@ -902,7 +902,7 @@ body {
   font-size: 14px;
   line-height: 1.45;
   padding-top: max(10px, env(safe-area-inset-top));
-  padding-bottom: calc(88px + env(safe-area-inset-bottom));
+  padding-bottom: calc(74px + env(safe-area-inset-bottom));
   padding-left: max(10px, env(safe-area-inset-left));
   padding-right: max(10px, env(safe-area-inset-right));
 }
@@ -2029,6 +2029,125 @@ textarea::placeholder {
   vertical-align: middle;
 }
 
+/* Configuración & respaldo compacto */
+.settings-modal {
+  max-height: calc(100dvh - 24px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+}
+
+.settings-modal .modal-header {
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+}
+
+.settings-modal .form-group {
+  margin-bottom: 10px;
+}
+
+.settings-modal label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.settings-modal input[type="text"],
+.settings-modal select {
+  width: 100%;
+  min-width: 0;
+}
+
+.farmer-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.farmer-inputs input {
+  width: 100%;
+  min-width: 0;
+}
+
+.settings-save {
+  margin: 4px 0 12px;
+  padding: 9px;
+  font-size: 0.8rem;
+}
+
+.settings-backup {
+  border-top: 1px solid var(--border-card);
+  padding-top: 4px;
+}
+
+.settings-backup summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-main);
+  padding: 8px 0;
+}
+
+.settings-backup summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-backup summary::after {
+  content: "▾";
+  margin-left: auto;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+.settings-backup[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0 2px;
+}
+
+.settings-actions > * {
+  width: 100%;
+  justify-content: center;
+  margin: 0;
+  padding: 9px 10px;
+  font-size: 0.74rem;
+}
+
+.settings-actions .btn-primary {
+  background: #1a2330;
+  border: 1px solid #2f6f9e;
+  color: #dbeafe;
+  box-shadow: none;
+}
+
+.settings-actions .btn-danger {
+  background: rgba(224, 90, 79, 0.08);
+  border: 1px solid rgba(224, 90, 79, 0.3);
+  color: #f08a81;
+}
+
+@media (max-width: 360px) {
+  .farmer-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-modal {
+    padding: 14px;
+  }
+}
+
 details.minimal-accordion {
   background: #0f1116;
   border-color: #252932;
@@ -2047,30 +2166,34 @@ details.minimal-accordion summary {
   background: rgba(13, 14, 18, 0.97);
   border-top: 1px solid #222630;
   box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35);
-  padding: 7px 4px calc(7px + env(safe-area-inset-bottom, 0px)) 4px;
+  padding: 8px 4px calc(8px + env(safe-area-inset-bottom, 0px)) 4px;
 }
 
 .nav-item {
   font-size: 0.62rem;
   font-weight: 500;
-  gap: 3px;
+  gap: 0;
   color: #7f8694;
-  padding: 3px 0;
-  min-height: 46px;
+  padding: 5px 0;
+  min-height: 42px;
+}
+
+.nav-item > span:not(.nav-icon) {
+  display: none;
 }
 
 .nav-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   font-size: 1.2rem;
 }
 
 .nav-icon svg {
-  width: 21px;
-  height: 21px;
+  width: 23px;
+  height: 23px;
 }
 
 .nav-item.active {
