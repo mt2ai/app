@@ -198,6 +198,18 @@ function enteroSeguro(valor, defecto = 0, min = 0, max = Number.MAX_SAFE_INTEGER
   return Math.floor(numeroSeguro(valor, defecto, min, max));
 }
 
+const DIAS_TIEMPO = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+function formatearFechaCorta(iso) {
+  const partes = String(iso || "").split("-");
+  if (partes.length !== 3) return "";
+  const dia = parseInt(partes[2], 10);
+  const mes = parseInt(partes[1], 10) - 1;
+  if (!MESES_CORTOS[mes]) return "";
+  return `${dia} ${MESES_CORTOS[mes]}`;
+}
+
 /**
  * Normaliza "H:MM" o "HH:MM" → "HH:MM" para comparación lexicográfica.
  */
@@ -386,6 +398,7 @@ const DEFAULT_STATE = {
     ultimoMs: 0,
     ultimoGranjero: null
   },
+  historialTiempos: [],
   ruedaDSS: {
     gemaActiva: "rubi",
     slots: {
@@ -584,6 +597,19 @@ function mergeStateWithDefaults(parsed) {
       ultimoGranjero: (typeof cg.ultimoGranjero === "number") ? cg.ultimoGranjero : null
     };
   }
+
+  // Historial de tiempos de todos los fragmenteros (se conserva entre ciclos)
+  merged.historialTiempos = (Array.isArray(merged.historialTiempos) ? merged.historialTiempos : [])
+    .filter(h => h && typeof h === "object" && !Array.isArray(h) && Number.isFinite(parseFloat(h.ms)) && parseFloat(h.ms) > 0)
+    .map(h => ({
+      ms: Math.round(parseFloat(h.ms)),
+      granjeroIndex: enteroSeguro(h.granjeroIndex, 0, 0, 3),
+      granjero: String(h.granjero || "Fragmentero").slice(0, 40),
+      fecha: String(h.fecha || "").slice(0, 10),
+      dia: String(h.dia || "").slice(0, 3),
+      timestamp: Number.isFinite(Number(h.timestamp)) ? Number(h.timestamp) : 0
+    }))
+    .slice(0, 500);
   // Normalizar historial semanal
   if (!Array.isArray(merged.semanaHistorial) || merged.semanaHistorial.length !== 7) {
     merged.semanaHistorial = [0, 0, 0, 0, 0, 0, 0];
@@ -1530,6 +1556,22 @@ function detenerCronometroEnGranjero(index, guardar = true) {
     g.tiempoTotalMs = (g.tiempoTotalMs || 0) + ms;
     g.ultimaSesionMs = ms;
     g.sesiones = (g.sesiones || 0) + 1;
+
+    const ahora = new Date();
+    const fechaCiclo = fechaJuegoISO(ahora);
+    const fechaObj = new Date(fechaCiclo + "T12:00:00");
+    const diaCiclo = DIAS_TIEMPO[(fechaObj.getDay() + 6) % 7];
+
+    if (!Array.isArray(STATE.historialTiempos)) STATE.historialTiempos = [];
+    STATE.historialTiempos.unshift({
+      ms: Math.round(ms),
+      granjeroIndex: index,
+      granjero: g.nombre,
+      fecha: fechaCiclo,
+      dia: diaCiclo,
+      timestamp: ahora.getTime()
+    });
+    STATE.historialTiempos = STATE.historialTiempos.slice(0, 500);
   }
 
   STATE.cronometroGeneral = { inicio: null, ultimoMs: ms, ultimoGranjero: index };
@@ -1596,6 +1638,49 @@ function renderRendimientoFragmenteros() {
   const cont = document.getElementById("farmersChart");
   if (!cont) return;
 
+  const historial = Array.isArray(STATE.historialTiempos) ? STATE.historialTiempos : [];
+  const mejor = historial.reduce((best, h) => (!best || h.ms < best.ms ? h : best), null);
+  const recientes = historial.slice(0, 14).reverse();
+  const maxReciente = recientes.length ? Math.max(...recientes.map(h => h.ms)) : 1;
+
+  const recordHtml = mejor
+    ? `<div class="record-panel">
+        <span class="record-icon">${svgIcon("award", "record-svg")}</span>
+        <div class="record-info">
+          <span class="record-label">Mejor tiempo</span>
+          <strong class="record-time">${formatearCronometro(mejor.ms)}</strong>
+          <span class="record-meta">${escapeHtml(mejor.granjero)} · ${escapeHtml(mejor.dia)} ${formatearFechaCorta(mejor.fecha)}</span>
+        </div>
+        <span class="record-badge">Récord</span>
+      </div>`
+    : `<div class="record-panel empty">
+        <span class="record-icon">${svgIcon("award", "record-svg")}</span>
+        <div class="record-info">
+          <span class="record-label">Mejor tiempo</span>
+          <span class="record-meta">Aún no hay tandas registradas.</span>
+        </div>
+      </div>`;
+
+  const trendHtml = recientes.length
+    ? `<div class="chart-head trend-head">
+        <span>Evolución reciente</span>
+        <span>Últimas ${recientes.length} tandas</span>
+      </div>
+      <div class="trend-bars">
+        ${recientes.map((h, idx) => {
+          const pct = Math.max(6, Math.round((h.ms / maxReciente) * 100));
+          const previo = idx > 0 ? recientes[idx - 1] : null;
+          const color = !previo ? "#d9b44a" : (h.ms < previo.ms ? "#3fb27f" : (h.ms > previo.ms ? "#e05a4f" : "#d9b44a"));
+          const title = `${h.granjero || "Fragmentero"} · ${formatearCronometro(h.ms)} · ${h.dia || ""} ${formatearFechaCorta(h.fecha)}`;
+          return `<div class="trend-col" title="${escapeHtml(title)}">
+            <div class="trend-bar" style="height:${pct}%;background:${color}"></div>
+            <span class="trend-label">${escapeHtml(h.dia || "")}</span>
+          </div>`;
+        }).join("")}
+      </div>
+      <div class="trend-note">Verde = mejora · Rojo = más lento</div>`
+    : "";
+
   const filas = (STATE.granjeros || []).map((g, i) => {
     const sesiones = g.sesiones || 0;
     const total = g.tiempoTotalMs || 0;
@@ -1634,6 +1719,7 @@ function renderRendimientoFragmenteros() {
   }).join("");
 
   cont.innerHTML = `
+    ${recordHtml}
     <div class="chart-head">
       <span>Rendimiento por fragmentero</span>
       <span class="chart-head-right">
@@ -1645,18 +1731,20 @@ function renderRendimientoFragmenteros() {
     <div class="farmer-chart-foot">
       ${conDatos.length
         ? `<span>Media: <strong>${formatearCronometro(media)}</strong></span>${masRapido && masLento && hayComparacion ? `<span>${escapeHtml(masRapido.nombre)} más rápido · ${escapeHtml(masLento.nombre)} más lento</span>` : ""}`
-        : `<span>Inicia el cronómetro y páralo con un fragmentero para registrar el primer tiempo.</span>`}
+        : `<span>Inicia el cronómetro y pulsa Completar con un fragmentero para registrar el primer tiempo.</span>`}
     </div>
+    ${trendHtml}
   `;
 }
 
 function reiniciarTiemposFragmenteros() {
-  if (!confirm("¿Reiniciar los tiempos y sesiones de los 4 fragmenteros? El cronómetro activo también se detendrá.")) return;
+  if (!confirm("¿Reiniciar el historial de tiempos, récords y sesiones de los 4 fragmenteros? El cronómetro activo también se detendrá.")) return;
   (STATE.granjeros || []).forEach(g => {
     g.tiempoTotalMs = 0;
     g.ultimaSesionMs = 0;
     g.sesiones = 0;
   });
+  STATE.historialTiempos = [];
   STATE.cronometroGeneral = { inicio: null, ultimoMs: 0, ultimoGranjero: null };
   saveState();
   actualizarCronometroGeneral();
@@ -1870,25 +1958,21 @@ function renderGranjeros() {
 
     return `
     <div class="farmer-row">
-      <div class="farmer-row-main">
-        <div class="farmer-name">
-          <span class="farmer-status ${g.hechoHoy ? 'done' : ''}">${svgIcon(g.hechoHoy ? "check" : "clock")}</span>
-          <div class="farmer-info">
-            <span class="farmer-name-text">${escapeHtml(g.nombre)}</span>
-            <span class="farmer-meta">${meta}</span>
-          </div>
+      <div class="farmer-name">
+        <span class="farmer-status ${g.hechoHoy ? 'done' : ''}">${svgIcon(g.hechoHoy ? "check" : "clock")}</span>
+        <div class="farmer-info">
+          <span class="farmer-name-text">${escapeHtml(g.nombre)}</span>
+          <span class="farmer-meta">${meta}</span>
         </div>
-        <span class="farmer-clock">${ultima}</span>
       </div>
-      <div class="farmer-row-actions">
-        <button class="btn-complete farmer-complete-btn ${g.hechoHoy ? 'done' : ''}" onclick="completarFragmentero(${i})">
-          ${g.hechoHoy
-            ? svgIcon("check", "btn-svg") + " Completado"
-            : (cronometroActivo
-              ? svgIcon("square", "btn-svg") + " Completar y parar"
-              : svgIcon("check", "btn-svg") + " Marcar 5 Cors")}
-        </button>
-      </div>
+      <span class="farmer-clock">${ultima}</span>
+      <button class="btn-complete farmer-complete-btn ${g.hechoHoy ? 'done' : ''}" onclick="completarFragmentero(${i})">
+        ${g.hechoHoy
+          ? svgIcon("check", "btn-svg") + " Completado"
+          : (cronometroActivo
+            ? svgIcon("square", "btn-svg") + " Completar"
+            : svgIcon("plus", "btn-svg") + " 5 Cors")}
+      </button>
     </div>`;
   }).join('');
 }
