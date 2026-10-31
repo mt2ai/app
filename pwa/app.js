@@ -1194,6 +1194,28 @@ function renderDashboardSummary() {
   if (corsEl) corsEl.textContent = `${STATE.corsSemanaActual || 0} / 140`;
   const planEl = document.getElementById("dashPlanPct");
   if (planEl) planEl.textContent = `${pct}%`;
+
+  renderDashboardChart();
+}
+
+function renderDashboardChart() {
+  const cont = document.getElementById("dashboardChart");
+  if (!cont) return;
+
+  const dias = ["L", "M", "X", "J", "V", "S", "D"];
+  const hoy = indiceDiaSemana();
+  const historial = STATE.semanaHistorial || [0, 0, 0, 0, 0, 0, 0];
+
+  cont.innerHTML = dias.map((dia, i) => {
+    const valor = Math.max(0, Math.min(20, historial[i] || 0));
+    const pct = Math.round((valor / 20) * 100);
+    const clases = [i === hoy ? "today" : "", valor >= 20 ? "complete" : ""].filter(Boolean).join(" ");
+    return `<div class="chart-col ${clases}">
+      <span class="chart-value">${valor || ""}</span>
+      <div class="chart-track"><div class="chart-bar" style="height:${pct}%"></div></div>
+      <span class="chart-label">${dia}</span>
+    </div>`;
+  }).join("");
 }
 
 function renderHeader() {
