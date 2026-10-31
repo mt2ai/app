@@ -109,6 +109,49 @@ function escapeHtml(value) {
   }[ch]));
 }
 
+const SVG_ICONS = {
+  bolt: '<path d="M13 2 4.5 13.5H11l-1 8.5L19.5 10H13l0-8Z"></path>',
+  users: '<circle cx="9" cy="8" r="3"></circle><path d="M3.5 20a5.5 5.5 0 0 1 11 0"></path><path d="M16 5.3a3 3 0 0 1 0 5.4"></path><path d="M17.5 14.5A5.5 5.5 0 0 1 21 20"></path>',
+  box: '<path d="M3 7.5 12 3l9 4.5-9 4.5-9-4.5Z"></path><path d="M3 7.5V17l9 4 9-4V7.5"></path><path d="M12 12v9"></path>',
+  flask: '<path d="M9 2h6"></path><path d="M10 2v6l-5 9a2 2 0 0 0 1.8 3h10.4a2 2 0 0 0 1.8-3l-5-9V2"></path><path d="M7.5 15h9"></path>',
+  target: '<circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="4"></circle><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"></circle>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="2"></rect><path d="M8 3v4M16 3v4M3 10h18"></path>',
+  hand: '<path d="M18 11V6a2 2 0 0 0-4 0v5"></path><path d="M14 10V4a2 2 0 0 0-4 0v7"></path><path d="M10 10.5V6a2 2 0 0 0-4 0v8"></path><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.9-6.2-2.6L2.5 16.5a2 2 0 0 1 2.8-2.8L8 16"></path>',
+  leaf: '<path d="M20 4c0 8-6 14-14 14 0-8 6-14 14-14Z"></path><path d="M4 20 14 10"></path>',
+  play: '<path d="M7 4.5v15l13-7.5-13-7.5Z" fill="currentColor" stroke="none"></path>',
+  pause: '<path d="M8 5v14M16 5v14"></path>',
+  check: '<path d="M4 12.5 9 17.5 20 6.5"></path>',
+  clock: '<circle cx="12" cy="12" r="8.5"></circle><path d="M12 7v5l3 2"></path>',
+  shield: '<path d="M12 3 20 6v5.5c0 4.5-3.2 8-8 9.5-4.8-1.5-8-5-8-9.5V6l8-3Z"></path>',
+  coins: '<ellipse cx="9" cy="7" rx="5" ry="2.5"></ellipse><path d="M4 7v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V7"></path><path d="M4 11v4c0 1.4 2.2 2.5 5 2.5 1 0 1.9-.1 2.7-.4"></path><path d="M14 12.5c2.8 0 5 1.1 5 2.5s-2.2 2.5-5 2.5-5-1.1-5-2.5"></path>',
+  award: '<circle cx="12" cy="8" r="5"></circle><path d="M8.5 12 7 22l5-3 5 3-1.5-10"></path>',
+  gem: '<path d="M6 3h12l3 6-9 12L3 9l3-6Z"></path><path d="M3 9h18M8.5 3 12 21M15.5 3 12 21"></path>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16v4Z"></path><path d="m14 6 4 4"></path>',
+  cart: '<circle cx="9" cy="20" r="1"></circle><circle cx="18" cy="20" r="1"></circle><path d="M3 4h2l2.5 11.5a2 2 0 0 0 2 1.5h8.5a2 2 0 0 0 2-1.6L21 7H6"></path>',
+  refresh: '<path d="M20 7v5h-5"></path><path d="M20 12a8 8 0 1 1-2.3-5.7"></path>',
+  note: '<path d="M6 3h9l5 5v13H6V3Z"></path><path d="M14 3v6h6"></path><path d="M9 13h6M9 17h6"></path>',
+  settings: '<path d="M4 7h16M4 17h16"></path><circle cx="10" cy="7" r="2.2" fill="currentColor" stroke="none"></circle><circle cx="14" cy="17" r="2.2" fill="currentColor" stroke="none"></circle>',
+  download: '<path d="M12 3v12"></path><path d="m7 10 5 5 5-5"></path><path d="M5 21h14"></path>',
+  upload: '<path d="M12 16V4"></path><path d="m7 9 5-5 5 5"></path><path d="M5 21h14"></path>',
+  copy: '<rect x="9" y="9" width="11" height="11" rx="2"></rect><path d="M15 9V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h4"></path>',
+  trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14"></path>',
+  save: '<path d="M5 3h11l3 3v15H5V3Z"></path><path d="M8 3v6h8V3M8 21v-7h8v7"></path>',
+  smartphone: '<rect x="7" y="2" width="10" height="20" rx="2"></rect><path d="M11 18h2"></path>',
+  globe: '<circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3c2.5 2.5 3.8 5.6 3.8 9S14.5 18.5 12 21c-2.5-2.5-3.8-5.6-3.8-9S9.5 5.5 12 3Z"></path>',
+  chevronRight: '<path d="m9 5 7 7-7 7"></path>',
+  x: '<path d="M6 6l12 12M18 6 6 18"></path>'
+};
+
+function svgIcon(name, className = "ui-icon") {
+  return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${SVG_ICONS[name] || ""}</svg>`;
+}
+
+function renderIconosEstaticos() {
+  document.querySelectorAll("[data-icon]").forEach(el => {
+    el.innerHTML = svgIcon(el.dataset.icon);
+  });
+}
+
 function fechaLocalISO(d = new Date()) {
   return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
 }
@@ -259,7 +302,7 @@ const HITOS_PLAN_MAESTRO = [
   { id: "p7", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Acumular banco de 8 Legendarias antes de intentar Míticas (evitar quiebra)", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p8", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Acumular reserva de 12 a 16 Legendarias (materia prima para fabricar Míticas)", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p9", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "Fusionar y obtener el primer Rubí Mítico Mate (equipar provisionalmente para +daño)", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p10", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "⚠️ REGLA DE ORO: NO fusionar pureza con solo 2 Míticas; iniciar banco de reserva", completado: false, cat: "alquimia", esHitoPlan: true },
+    { id: "p10", etapa: 2, etapaNombre: "Etapa 2 (Sem 9-16)", texto: "REGLA DE ORO: NO fusionar pureza con solo 2 Míticas; iniciar banco de reserva", completado: false, cat: "alquimia", esHitoPlan: true },
 
   // ETAPA 3: Protocolo 4 Míticas ➔ Claridad Clara & Límpida (Semanas 17-24)
   { id: "p11", etapa: 3, etapaNombre: "Etapa 3 (Sem 17-24)", texto: "Acumular colchón de 4 Míticas Mate antes del primer asalto de pureza", completado: false, cat: "alquimia", esHitoPlan: true },
@@ -276,7 +319,7 @@ const HITOS_PLAN_MAESTRO = [
 
   // ETAPA 5: El Asalto Final a Excelente +6 (Semanas 33-36)
   { id: "p20", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Acumular lote crítico para Excelente: 2 Brillantes (+ reserva de Míticas) para tasa ~30-35%", completado: false, cat: "alquimia", esHitoPlan: true },
-  { id: "p21", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "🏆 ¡Conseguir Rubí Mítico Excelente! (Culminación de la pirámide de ~16-30 Míticas)", completado: false, cat: "alquimia", esHitoPlan: true },
+  { id: "p21", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "¡Conseguir Rubí Mítico Excelente! (Culminación de la pirámide de ~16-30 Míticas)", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p22", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Subir Rubí Excelente a +6 con reserva mínima de 20 alubias verdes", completado: false, cat: "alquimia", esHitoPlan: true },
   { id: "p23", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Culminar la Meta de Equipo Principal con el poder del Rubí Excelente +6", completado: false, cat: "equipo", esHitoPlan: true }
 ];
@@ -316,6 +359,11 @@ const DEFAULT_STATE = {
     alubiasVerdes: 0,
     elixiresSol: 0,
     pocionesMoradas: 0
+  },
+  notificaciones: {
+    permisoSolicitado: false,
+    eventos: {},
+    notificados: {}
   },
   finanzas: {
     saldoWons: 0,
@@ -369,6 +417,20 @@ function mergeStateWithDefaults(parsed) {
     if (merged.finanzas.precioCompraRubiWons === undefined) merged.finanzas.precioCompraRubiWons = 4.5;
     if (merged.finanzas.precioCompraRubiKK === undefined) merged.finanzas.precioCompraRubiKK = 0;
   }
+  // Normalizar preferencias de notificaciones de eventos
+  if (!merged.notificaciones || typeof merged.notificaciones !== "object" || Array.isArray(merged.notificaciones)) {
+    merged.notificaciones = { permisoSolicitado: false, eventos: {}, notificados: {} };
+  } else {
+    const notifPrevias = merged.notificaciones;
+    merged.notificaciones = Object.assign({}, DEFAULT_STATE.notificaciones, notifPrevias, {
+      eventos: (notifPrevias.eventos && typeof notifPrevias.eventos === "object" && !Array.isArray(notifPrevias.eventos))
+        ? Object.assign({}, notifPrevias.eventos)
+        : {},
+      notificados: (notifPrevias.notificados && typeof notifPrevias.notificados === "object" && !Array.isArray(notifPrevias.notificados))
+        ? Object.assign({}, notifPrevias.notificados)
+        : {}
+    });
+  }
   // Asegurar objetivos y sincronizar con los 23 hitos del plan maestro
   if (!merged.objetivos || !Array.isArray(merged.objetivos) || merged.objetivos.length === 0) {
     merged.objetivos = JSON.parse(JSON.stringify(HITOS_PLAN_MAESTRO));
@@ -410,6 +472,8 @@ function mergeStateWithDefaults(parsed) {
   // Normalizar historial semanal
   if (!Array.isArray(merged.semanaHistorial) || merged.semanaHistorial.length !== 7) {
     merged.semanaHistorial = [0, 0, 0, 0, 0, 0, 0];
+  } else {
+    merged.semanaHistorial = merged.semanaHistorial.slice();
   }
   // Fechas de control diario/semanal
   if (!merged.ultimoDia) merged.ultimoDia = fechaLocalISO();
@@ -486,11 +550,23 @@ function saveState() {
 let activeView = "view-dashboard";
 let activeZoom = "diario";
 
-function switchView(viewId) {
+const VIEWS_ORDER = [
+  "view-dashboard",
+  "view-granjeros",
+  "view-dss",
+  "view-alquimia",
+  "view-finanzas",
+  "view-eventos"
+];
+
+function switchView(viewId, swipeDirection) {
   activeView = viewId;
-  document.querySelectorAll(".view-section").forEach(sec => sec.classList.remove("active"));
+  document.querySelectorAll(".view-section").forEach(sec => sec.classList.remove("active", "swipe-next", "swipe-prev"));
   const target = document.getElementById(viewId);
-  if (target) target.classList.add("active");
+  if (target) {
+    target.classList.add("active");
+    if (swipeDirection) target.classList.add(`swipe-${swipeDirection}`);
+  }
 
   document.querySelectorAll(".nav-item").forEach(item => {
     item.classList.toggle("active", item.getAttribute("data-view") === viewId);
@@ -516,6 +592,59 @@ function switchZoom(zoomKey) {
   renderDashboardZoom();
 }
 
+function cambiarVistaRelativa(delta) {
+  const total = VIEWS_ORDER.length;
+  const actual = VIEWS_ORDER.indexOf(activeView);
+  const indice = actual === -1 ? 0 : actual;
+  const siguiente = (indice + delta + total) % total;
+  switchView(VIEWS_ORDER[siguiente], delta > 0 ? "next" : "prev");
+}
+
+function iniciarGestosSwipe() {
+  const SWIPE_MIN = 55;
+  const SWIPE_LOCK_MS = 350;
+  let startX = 0;
+  let startY = 0;
+  let startT = 0;
+  let tracking = false;
+  let locked = false;
+
+  const esZonaIgnorada = el => {
+    if (!el || !el.closest) return true;
+    return !!el.closest("input, select, textarea, .etapa-pills-row, .zoom-selector, .subnav-tabs, .week-matrix, .styled-table");
+  };
+
+  document.addEventListener("touchstart", (e) => {
+    if (e.touches.length !== 1) { tracking = false; return; }
+    if (document.querySelector(".modal-overlay.active")) { tracking = false; return; }
+    if (esZonaIgnorada(e.target)) { tracking = false; return; }
+    const t = e.touches[0];
+    startX = t.clientX;
+    startY = t.clientY;
+    startT = Date.now();
+    tracking = true;
+  }, { passive: true });
+
+  document.addEventListener("touchcancel", () => { tracking = false; }, { passive: true });
+
+  document.addEventListener("touchend", (e) => {
+    if (!tracking) return;
+    tracking = false;
+    if (!e.changedTouches || !e.changedTouches.length) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+
+    if (Date.now() - startT > 1000) return;
+    if (Math.abs(dx) < SWIPE_MIN || Math.abs(dx) < Math.abs(dy) * 1.3) return;
+    if (locked) return;
+
+    locked = true;
+    setTimeout(() => { locked = false; }, SWIPE_LOCK_MS);
+    cambiarVistaRelativa(dx < 0 ? 1 : -1);
+  }, { passive: true });
+}
+
 // ==========================================
 // 4. CONTROL DE OBJETIVOS & HITOS DEL PLAN
 // ==========================================
@@ -524,11 +653,11 @@ let activeFinanzasTab = "plan";
 let filtroEtapaActual = 0;
 
 const CAT_COLORS_OBJETIVOS = {
-  alquimia: { icon: "💎", label: "Alquimia" },
-  equipo:   { icon: "🛡️", label: "Equipo" },
-  farmeo:   { icon: "⚡", label: "Farmeo" },
-  finanzas: { icon: "💰", label: "Finanzas" },
-  general:  { icon: "🎯", label: "Meta" }
+  alquimia: { icon: "gem", label: "Alquimia" },
+  equipo:   { icon: "shield", label: "Equipo" },
+  farmeo:   { icon: "bolt", label: "Farmeo" },
+  finanzas: { icon: "coins", label: "Finanzas" },
+  general:  { icon: "target", label: "Meta" }
 };
 
 function switchFinanzasTab(tabKey) {
@@ -561,22 +690,23 @@ function renderListaObjetivosHtml(lista, mensajeVacio) {
   return lista.map(o => {
     const c = CAT_COLORS_OBJETIVOS[o.cat] || CAT_COLORS_OBJETIVOS.general;
     const badgeEtapa = o.esHitoPlan
-      ? `<span style="font-size:0.68rem; background:rgba(212,160,23,0.15); border:1px solid var(--gold); color:var(--gold); padding:1px 6px; border-radius:10px; margin-left:6px; white-space:nowrap;">E${o.etapa || 1}</span>`
-      : `<span style="font-size:0.68rem; background:rgba(52,152,219,0.15); border:1px solid var(--blue); color:var(--blue); padding:1px 6px; border-radius:10px; margin-left:6px; white-space:nowrap;">Personal</span>`;
+      ? `<span class="objective-tag plan">E${o.etapa || 1}</span>`
+      : `<span class="objective-tag custom">Personal</span>`;
 
     const btnDel = o.esHitoPlan
       ? ""
-      : `<button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem; color:var(--text-dim);" onclick="eliminarObjetivo('${escapeHtml(o.id)}')" title="Eliminar meta personalizada">✕</button>`;
+      : `<button class="objective-delete" onclick="eliminarObjetivo('${escapeHtml(o.id)}')" title="Eliminar meta personalizada" aria-label="Eliminar meta">×</button>`;
 
     return `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid ${o.completado ? 'rgba(46,204,113,0.3)' : 'var(--border-card)'};">
-        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
-          <input type="checkbox" ${o.completado ? 'checked' : ''} onchange="toggleObjetivo('${escapeHtml(o.id)}')" style="accent-color:var(--green); width:16px; height:16px; cursor:pointer;">
-          <span style="font-size:0.83rem; color:${o.completado ? 'var(--text-muted)' : 'var(--text-main)'}; text-decoration:${o.completado ? 'line-through' : 'none'}; line-height:1.3;">
-            ${c.icon} ${escapeHtml(o.texto)} ${badgeEtapa}
-          </span>
+      <div class="objective-row ${o.completado ? "done" : ""}">
+        <label class="objective-main">
+          <input type="checkbox" class="objective-check" ${o.completado ? 'checked' : ''} onchange="toggleObjetivo('${escapeHtml(o.id)}')">
+          <span class="objective-text">${svgIcon(c.icon, "obj-icon")} ${escapeHtml(o.texto)}</span>
         </label>
-        ${btnDel}
+        <div class="objective-side">
+          ${badgeEtapa}
+          ${btnDel}
+        </div>
       </div>
     `;
   }).join('');
@@ -592,12 +722,12 @@ function renderObjetivos() {
   const progBox = document.getElementById("progresoPlanBox");
   if (progBox) {
     progBox.innerHTML = `
-      <div style="background:var(--bg-input); padding:8px 10px; border-radius:var(--radius-sm); border:1px solid rgba(212,160,23,0.3);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-          <span style="font-size:0.75rem; font-weight:700; color:var(--gold);">🏆 Progreso Plan Maestro:</span>
-          <span class="semaphore-badge ${pctPlan >= 80 ? 'semaphore-green' : (pctPlan >= 40 ? 'semaphore-yellow' : 'semaphore-red')}">${hechosPlan}/${hitosPlan.length} (${pctPlan}%)</span>
+      <div class="plan-progress">
+        <div class="plan-progress-head">
+          <span>${svgIcon("award", "obj-icon")} Progreso Plan Maestro</span>
+          <span class="semaphore-badge ${pctPlan >= 80 ? 'semaphore-green' : (pctPlan >= 40 ? 'semaphore-yellow' : 'semaphore-red')}">${hechosPlan}/${hitosPlan.length} · ${pctPlan}%</span>
         </div>
-        <div class="progress-track" style="height:5px; margin:4px 0 2px 0;">
+        <div class="progress-track">
           <div class="progress-fill ${pctPlan >= 80 ? 'green' : ''}" style="width:${pctPlan}%;"></div>
         </div>
       </div>
@@ -908,11 +1038,11 @@ function ejecutarIntentoAlquimia(esExito) {
 
   if (esExito) {
     consecutiveFails = 0;
-    setJitterStatus(`✅ ¡ÉXITO!${detalleCambio} Pausa de Jitter activada:`);
+    setJitterStatus(`Éxito registrado${detalleCambio}. Pausa de Jitter activada:`);
     iniciarJitterCountdown();
   } else {
     consecutiveFails++;
-    setJitterStatus(`❌ FALLO REGISTRADO${detalleCambio}.`);
+    setJitterStatus(`Fallo registrado${detalleCambio}.`);
     if (consecutiveFails >= 2) {
       activarStopLoss();
       return;
@@ -932,7 +1062,7 @@ function iniciarJitterCountdown() {
     actualizarUIJitter();
     if (jitterRemaining <= 0) {
       clearInterval(jitterTimerId);
-      setJitterStatus("🟢 ¡LISTO PARA EL SIGUIENTE CLIC!");
+      setJitterStatus("Listo para el siguiente clic.");
       document.getElementById("btnExito").disabled = false;
       document.getElementById("btnFallo").disabled = false;
     }
@@ -966,7 +1096,7 @@ function activarStopLoss() {
       stopLossActive = false;
       consecutiveFails = 0;
       document.getElementById("stopLossBox").style.display = "none";
-      setJitterStatus("🟢 Pausa cumplida. Estado reseteado.");
+      setJitterStatus("Pausa cumplida. Estado reseteado.");
       document.getElementById("btnExito").disabled = false;
       document.getElementById("btnFallo").disabled = false;
     }
@@ -986,10 +1116,10 @@ function toggleSessionTimer() {
   if (sessionRunning) {
     clearInterval(sessionTimerId);
     sessionRunning = false;
-    if (btn) btn.textContent = "▶";
+    if (btn) btn.innerHTML = svgIcon("play");
   } else {
     sessionRunning = true;
-    if (btn) btn.textContent = "⏸";
+    if (btn) btn.innerHTML = svgIcon("pause");
     sessionTimerId = setInterval(() => {
       if (sessionSeconds > 0) {
         sessionSeconds--;
@@ -997,8 +1127,8 @@ function toggleSessionTimer() {
       } else {
         clearInterval(sessionTimerId);
         sessionRunning = false;
-        if (btn) btn.textContent = "▶";
-        alert("🔔 ¡12 Minutos cumplidos! Hora de cambiar de fragmentero.");
+        if (btn) btn.innerHTML = svgIcon("play");
+        alert("¡12 minutos cumplidos! Hora de cambiar de fragmentero.");
       }
     }, 1000);
   }
@@ -1009,7 +1139,7 @@ function resetSessionTimer(minutos = 12) {
   sessionRunning = false;
   sessionSeconds = minutos * 60;
   const btn = document.getElementById("btnTimerToggle");
-  if (btn) btn.textContent = "▶";
+  if (btn) btn.innerHTML = svgIcon("play");
   renderSessionTimer();
 }
 
@@ -1029,12 +1159,14 @@ function renderAll() {
   renderHeader();
   renderDashboardZoom();
   renderConsumiblesDash();
+  renderDashboardSummary();
   renderGranjeros();
   renderEventosRadar();   // async — actualiza el DOM cuando resuelve
   renderRuedaDSS();
   renderObjetivos();
   renderFinanzas();
   renderCalculadoraLuzVerde();
+  renderEstadoNotificaciones();
   // Vista de eventos (sólo si está activa para no hacer fetch innecesario)
   if (activeView === "view-eventos") {
     renderVistaEventos();
@@ -1049,6 +1181,19 @@ function renderConsumiblesDash() {
   const elAlubias = document.getElementById("dashAlubias");
   if (elGuantes) elGuantes.textContent = STATE.consumibles.guantesLadron ?? 0;
   if (elAlubias) elAlubias.textContent = `${STATE.consumibles.alubiasVerdes ?? 0} / 60`;
+}
+
+function renderDashboardSummary() {
+  const hitos = (STATE.objetivos || []).filter(o => o.esHitoPlan);
+  const hechos = hitos.filter(o => o.completado).length;
+  const pct = hitos.length ? Math.round((hechos / hitos.length) * 100) : 0;
+
+  const semanaEl = document.getElementById("dashSemana");
+  if (semanaEl) semanaEl.textContent = `${STATE.semanaActual || 1} / 36`;
+  const corsEl = document.getElementById("dashSemanaCors");
+  if (corsEl) corsEl.textContent = `${STATE.corsSemanaActual || 0} / 140`;
+  const planEl = document.getElementById("dashPlanPct");
+  if (planEl) planEl.textContent = `${pct}%`;
 }
 
 function renderHeader() {
@@ -1076,16 +1221,16 @@ function renderDashboardZoom() {
 
     cont.innerHTML = `
       <div class="card-title" style="margin-bottom:6px;">
-        <span>⚡ Tarea Diaria</span>
+        <span>${svgIcon("bolt", "obj-icon")} Tarea Diaria</span>
         <span class="semaphore-badge ${pct === 100 ? 'semaphore-green' : 'semaphore-yellow'}">${corsHoy} / 20 Cors (${pct}%)</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill ${pct === 100 ? 'green' : ''}" style="width: ${pct}%"></div>
       </div>
       <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
-        ${hechos === 4 ? '🎉 ¡Cuota de hoy completada!' : `Faltan ${4 - hechos} personaje(s) por fragmentar.`}
+        ${hechos === 4 ? '¡Cuota de hoy completada!' : `Faltan ${4 - hechos} personaje(s) por fragmentar.`}
       </p>
-      <button class="btn-primary" onclick="switchView('view-granjeros')" style="padding: 9px; font-size: 0.82rem;">👥 Abrir Fragmenteros ➔</button>
+      <button class="btn-primary" onclick="switchView('view-granjeros')" style="padding: 9px; font-size: 0.82rem;">${svgIcon("users", "btn-svg")} Abrir Fragmenteros ${svgIcon("chevronRight", "btn-svg")}</button>
     `;
   } else if (activeZoom === "semanal") {
     const cors = STATE.corsSemanaActual;
@@ -1095,23 +1240,26 @@ function renderDashboardZoom() {
       const diaHoyIdx = (new Date().getDay() + 6) % 7; // 0=Lun, 1=Mar ... 6=Dom
       cont.innerHTML = `
       <div class="card-title">
-        <span>📅 Semana ${STATE.semanaActual} de 36</span>
+        <span>${svgIcon("calendar", "obj-icon")} Semana ${STATE.semanaActual} de 36</span>
         <span class="semaphore-badge ${semColor}">${cors} / 140 Cors</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill ${cors >= 100 ? 'green' : ''}" style="width: ${pct}%"></div>
       </div>
       <div class="week-matrix">
-        ${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d, i) => `
+        ${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d, i) => {
+          const valorDia = STATE.semanaHistorial[i] || 0;
+          const estadoDia = valorDia >= 20 ? "done" : (valorDia > 0 ? "partial" : "pending");
+          return `
           <div class="day-cell ${i === diaHoyIdx ? 'today' : ''}">
             <span class="day-name">${d}</span>
-            <span class="day-val">${STATE.semanaHistorial[i] || 0}</span>
-            <span class="day-status">${(STATE.semanaHistorial[i] || 0) >= 20 ? '✅' : ((STATE.semanaHistorial[i] || 0) > 0 ? '🟡' : '⏳')}</span>
-          </div>
-        `).join('')}
+            <span class="day-val">${valorDia}</span>
+            <span class="day-status ${estadoDia}" aria-hidden="true"></span>
+          </div>`;
+        }).join('')}
       </div>
-      <p style="font-size: 0.8rem; color: var(--gold); margin-top: 8px;">
-        🎯 Meta Semana ${STATE.semanaActual}: Mantener Semáforo Verde (≥100 Cors).
+      <p class="week-goal">
+        ${svgIcon("target", "obj-icon")} Meta Semana ${STATE.semanaActual}: mantener el semáforo en verde (≥100 Cors).
       </p>
     `;
   } else if (activeZoom === "mensual") {
@@ -1133,38 +1281,41 @@ function renderDashboardZoom() {
     const semColor2 = pctMes >= 90 ? 'semaphore-green' : (pctMes >= 60 ? 'semaphore-yellow' : 'semaphore-red');
     cont.innerHTML = `
       <div class="card-title">
-        <span>📆 Mes ${mesNum} (Semanas ${semInicio}–${semFin})</span>
+        <span>${svgIcon("calendar", "obj-icon")} Mes ${mesNum} (Semanas ${semInicio}–${semFin})</span>
         <span class="semaphore-badge ${semColor2}">${corsMesActual} Cors sem. ${STATE.semanaActual} (${pctMes}%)</span>
       </div>
       <div class="progress-track"><div class="progress-fill ${pctMes >= 90 ? 'green' : ''}" style="width: ${pctMes}%;"></div></div>
-      <div style="background: var(--bg-input); padding: 10px; border-radius: var(--radius-sm); font-size: 0.82rem; margin-top: 8px;">
-        <strong style="color: var(--gold);">🏆 Hito Mes ${mesNum}:</strong>
-        <p style="margin-top: 4px;">6-8 Míticos Mates y comprar ${STATE.finanzas.metaNombre}.</p>
-        <p style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;">📊 Total global acumulado: <strong style="color:var(--gold);">${corsMesTotal} / 5040 Cors</strong></p>
+      <div class="info-box">
+        <strong>${svgIcon("award", "obj-icon")} Hito Mes ${mesNum}</strong>
+        <p>6-8 Míticos Mates y comprar ${STATE.finanzas.metaNombre}.</p>
+        <p class="info-box-note">Total global acumulado: <strong>${corsMesTotal} / 5040 Cors</strong></p>
       </div>
     `;
   } else if (activeZoom === "global") {
     const pct = Math.min(100, Math.round((STATE.corsTotal / 5040) * 100));
     const etapaActual = Math.min(5, Math.ceil((STATE.semanaActual || 1) / 8));
     const etapas = [
-      { n: 1, nombre: "Cimientos", rango: "Sem 1-8", icono: "✅" },
-      { n: 2, nombre: "Míticos Mates", rango: "Sem 9-16", icono: "🔄" },
-      { n: 3, nombre: "Pureza Clara & Límpida", rango: "Sem 17-24", icono: "🔒" },
-      { n: 4, nombre: "Colchón de Brillantes", rango: "Sem 25-32", icono: "🔒" },
-      { n: 5, nombre: "Excelente +6", rango: "Sem 33-36", icono: "🏆" }
+      { n: 1, nombre: "Cimientos", rango: "Sem 1-8" },
+      { n: 2, nombre: "Míticos Mates", rango: "Sem 9-16" },
+      { n: 3, nombre: "Pureza Clara & Límpida", rango: "Sem 17-24" },
+      { n: 4, nombre: "Colchón de Brillantes", rango: "Sem 25-32" },
+      { n: 5, nombre: "Excelente +6", rango: "Sem 33-36" }
     ];
     const filasEtapas = etapas.map(e => {
-      if (e.n < etapaActual) return `<div>✅ Etapa ${e.n}: ${e.nombre} (${e.rango})</div>`;
-      if (e.n === etapaActual) return `<div style="color:var(--gold);">🔄 Etapa ${e.n}: ${e.nombre} (${e.rango}) ➔ Estás Aquí</div>`;
-      return `<div>🔒 Etapa ${e.n}: ${e.nombre} (${e.rango})</div>`;
+      const estado = e.n < etapaActual ? "done" : (e.n === etapaActual ? "current" : "locked");
+      return `<div class="stage-row ${estado}">
+        <span class="stage-dot" aria-hidden="true"></span>
+        <span>Etapa ${e.n}: ${e.nombre} (${e.rango})</span>
+        ${estado === "current" ? '<span class="stage-now">Estás aquí</span>' : ""}
+      </div>`;
     }).join("");
     cont.innerHTML = `
       <div class="card-title">
-        <span>🌍 Progreso Total hacia Excelente +6</span>
+        <span>${svgIcon("target", "obj-icon")} Progreso total hacia Excelente +6</span>
         <span class="semaphore-badge semaphore-green">${STATE.corsTotal} / 5040 Cors (${pct}%)</span>
       </div>
       <div class="progress-track"><div class="progress-fill ruby" style="width: ${pct}%;"></div></div>
-      <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-top: 8px;">
+      <div class="stage-list">
         ${filasEtapas}
       </div>
     `;
@@ -1178,12 +1329,12 @@ function renderGranjeros() {
   cont.innerHTML = STATE.granjeros.map((g, i) => `
     <div class="farmer-row">
       <div class="farmer-name">
-        <span>${g.hechoHoy ? '✅' : '⏳'}</span>
+        <span class="farmer-status ${g.hechoHoy ? 'done' : ''}">${svgIcon(g.hechoHoy ? "check" : "clock")}</span>
         <span>${escapeHtml(g.nombre)}</span>
-        ${g.hora ? `<span style="font-size: 0.75rem; color: var(--text-muted);">(${escapeHtml(g.hora)})</span>` : ''}
+        ${g.hora ? `<span class="farmer-time">(${escapeHtml(g.hora)})</span>` : ''}
       </div>
       <button class="btn-complete ${g.hechoHoy ? 'done' : ''}" onclick="toggleGranjero(${i})">
-        ${g.hechoHoy ? 'Completado ✓' : 'Marcar 5 Cors'}
+        ${g.hechoHoy ? 'Completado' : 'Marcar 5 Cors'}
       </button>
     </div>
   `).join('');
@@ -1228,12 +1379,219 @@ function setFiltroEventos(filtro) {
   renderVistaEventos();
 }
 
+// ==========================================
+// NOTIFICACIONES POR EVENTO (CAMPANITA)
+// ==========================================
+
+function claveEventoNotificacion(ev) {
+  const tipo = (ev.tipo_evento || "").trim().toLowerCase();
+  // Los eventos estáticos se repiten cada semana: el aviso vale para todos sus días
+  const fecha = tipo === "estatico" ? "" : (ev.fecha || "").trim();
+  const dia = tipo === "estatico" ? "" : (ev.dia_semana || "").trim();
+  return [
+    tipo,
+    (ev.servidor || "").trim(),
+    fecha,
+    dia,
+    normalizarHora(ev.hora_inicio),
+    normalizarHora(ev.hora_fin),
+    (ev.nombre_evento || "").trim()
+  ].join("|");
+}
+
+function notificacionEventoActiva(clave) {
+  return !!(STATE.notificaciones && STATE.notificaciones.eventos && STATE.notificaciones.eventos[clave]);
+}
+
+function iconoCampana(activa) {
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+    <path d="M10 21h4"></path>
+    ${activa ? `<path d="M12 2.5v1.2"></path>` : `<line x1="4" y1="4" x2="20" y2="20"></line>`}
+  </svg>`;
+}
+
+function eventoEstaActivoAhora(ev, hora) {
+  const hi = normalizarHora(ev.hora_inicio);
+  const hf = normalizarHora(ev.hora_fin);
+  if (hi <= hf) return hora >= hi && hora <= hf;
+  return hora >= hi || hora <= hf;
+}
+
+function renderEstadoNotificaciones() {
+  const btn = document.getElementById("btnActivarNotificaciones");
+  const estado = document.getElementById("notifEstadoEventos");
+  if (!btn && !estado) return;
+
+  const soportado = typeof Notification !== "undefined";
+  const permiso = soportado ? Notification.permission : "unsupported";
+  const activos = Object.keys(STATE.notificaciones?.eventos || {}).length;
+
+  if (btn) {
+    btn.disabled = !soportado;
+    btn.classList.toggle("active", permiso === "granted");
+    if (!soportado) btn.textContent = "Sin soporte";
+    else if (permiso === "granted") btn.textContent = "Avisos activados";
+    else if (permiso === "denied") btn.textContent = "Avisos bloqueados";
+    else btn.textContent = "Activar avisos";
+  }
+
+  if (estado) {
+    if (!soportado) estado.textContent = "Este navegador no soporta notificaciones.";
+    else if (permiso === "denied") estado.textContent = "Permiso bloqueado en el navegador.";
+    else if (permiso === "granted") estado.textContent = activos ? `${activos} evento(s) con aviso (app abierta)` : "Elige eventos con la campanita.";
+    else estado.textContent = "Activa el permiso y elige eventos con la campanita.";
+  }
+}
+
+async function solicitarPermisoNotificaciones() {
+  if (typeof Notification === "undefined") {
+    alert("Este navegador no soporta notificaciones.");
+    return false;
+  }
+  if (Notification.permission === "granted") return true;
+  if (Notification.permission === "denied") {
+    alert("Las notificaciones están bloqueadas. Actívalas desde los ajustes del navegador para este sitio.");
+    return false;
+  }
+
+  try {
+    const resultado = await Notification.requestPermission();
+    if (STATE.notificaciones) {
+      STATE.notificaciones.permisoSolicitado = true;
+    }
+    return resultado === "granted";
+  } catch (e) {
+    alert("No se pudo solicitar el permiso de notificaciones.");
+    return false;
+  }
+}
+
+async function enviarNotificacion(titulo, cuerpo, tag) {
+  const opciones = {
+    body: cuerpo,
+    icon: "./icon-192.png",
+    badge: "./icon-192.png",
+    tag: tag ? `naaytracker-${tag}` : "naaytracker-evento"
+  };
+
+  try {
+    if ("serviceWorker" in navigator) {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (reg && typeof reg.showNotification === "function") {
+        await reg.showNotification(titulo, opciones);
+        return;
+      }
+    }
+    new Notification(titulo, opciones);
+  } catch (e) {
+    console.warn("[NaayTracker] No se pudo mostrar la notificación:", e);
+  }
+}
+
+async function toggleNotificacionEvento(clave, nombre) {
+  if (!clave) return;
+  if (!STATE.notificaciones) {
+    STATE.notificaciones = { permisoSolicitado: false, eventos: {}, notificados: {} };
+  }
+  if (!STATE.notificaciones.eventos) STATE.notificaciones.eventos = {};
+
+  if (STATE.notificaciones.eventos[clave]) {
+    delete STATE.notificaciones.eventos[clave];
+    saveState();
+    renderEstadoNotificaciones();
+    return;
+  }
+
+  const permitido = await solicitarPermisoNotificaciones();
+  if (!permitido) {
+    renderEstadoNotificaciones();
+    return;
+  }
+
+  STATE.notificaciones.eventos[clave] = true;
+  saveState();
+  renderEstadoNotificaciones();
+  procesarNotificacionesEventos();
+}
+
+async function activarNotificacionesEventos() {
+  const permitido = await solicitarPermisoNotificaciones();
+  renderEstadoNotificaciones();
+  if (permitido) procesarNotificacionesEventos();
+}
+
+let NOTIF_PROCESANDO = false;
+
+async function procesarNotificacionesEventos() {
+  if (NOTIF_PROCESANDO) return;
+  if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+
+  NOTIF_PROCESANDO = true;
+  try {
+    const eventos = await cargarEventosAPI();
+    if (!eventos.length) return;
+
+    const servidor = STATE.perfil.servidor || "Ruby";
+    const filtrados = filtrarEventosPorServidor(eventos, servidor);
+    const now = new Date();
+    const fechaHoy = fechaLocalISO(now);
+    const diaHoy = DIA_API_MAP[now.getDay()];
+    const horaActual = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+
+    const prefs = STATE.notificaciones?.eventos || {};
+    if (!STATE.notificaciones) STATE.notificaciones = { permisoSolicitado: true, eventos: {}, notificados: {} };
+    if (!STATE.notificaciones.notificados) STATE.notificaciones.notificados = {};
+    const notificados = STATE.notificaciones.notificados;
+
+    // Limpiar registros de días anteriores para permitir avisos diarios
+    Object.keys(notificados).forEach(k => {
+      if (notificados[k] !== fechaHoy) delete notificados[k];
+    });
+
+    const activosHoy = filtrados.filter(ev => {
+      const tipo = (ev.tipo_evento || "").toLowerCase();
+      const esHoy = tipo === "estatico" ? ev.dia_semana === diaHoy : ev.fecha === fechaHoy;
+      return esHoy && eventoEstaActivoAhora(ev, horaActual);
+    });
+
+    let enviados = 0;
+    for (const ev of activosHoy) {
+      const clave = claveEventoNotificacion(ev);
+      if (!prefs[clave] || notificados[clave] === fechaHoy) continue;
+
+      await enviarNotificacion(
+        ev.nombre_evento,
+        `Evento activo ${ev.hora_inicio}–${ev.hora_fin} · ${servidor}`,
+        clave
+      );
+      notificados[clave] = fechaHoy;
+      enviados++;
+    }
+
+    if (enviados > 0) saveState();
+  } finally {
+    NOTIF_PROCESANDO = false;
+  }
+}
+
+function iniciarListaNotificaciones() {
+  const cont = document.getElementById("eventosList");
+  if (!cont) return;
+  cont.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-notif");
+    if (!btn) return;
+    e.preventDefault();
+    toggleNotificacionEvento(btn.dataset.notifKey, btn.dataset.notifNombre);
+  });
+}
+
 async function renderEventosRadar() {
   const el = document.getElementById("radarEventBox");
   if (!el) return;
 
   el.innerHTML = `
-    <div class="radar-header"><span>⏰ RADAR DE EVENTOS</span><span style="font-size:0.75rem; color:var(--text-muted);">Cargando...</span></div>
+    <div class="radar-header"><span>${svgIcon("calendar", "obj-icon")} Radar de eventos</span><span style="font-size:0.75rem; color:var(--text-muted);">Cargando...</span></div>
     <div class="radar-content" style="font-size:0.85rem; color:var(--text-muted);">Consultando eventos del servidor...</div>
   `;
 
@@ -1267,38 +1625,42 @@ async function renderEventosRadar() {
   const badge = `<span style="font-size:0.7rem; background:rgba(212,160,23,0.15); border:1px solid var(--gold); color:var(--gold); padding:1px 6px; border-radius:10px; margin-left:6px;">${escapeHtml(servidor)}</span>`;
 
   if (EVENTOS_API_ERROR && filtrados.length === 0) {
-    el.innerHTML = `<div class="radar-header"><span>⚠️ SIN CONEXIÓN</span></div><div class="radar-content" style="font-size:0.82rem; color:var(--text-muted);">No se pudieron cargar los eventos en vivo.</div>`;
+    el.innerHTML = `<div class="radar-header"><span>Sin conexión</span></div><div class="radar-content" style="font-size:0.82rem; color:var(--text-muted);">No se pudieron cargar los eventos en vivo.</div>`;
     return;
   }
 
   if (activo) {
     const esAlq = esEventoAlquimia(activo.nombre_evento);
-    const ico = activo.tipo_evento === "especial" ? "🗓️ ESPECIAL" : activo.tipo_evento === "grupo" ? "👥 GRUPO" : "⚡ ACTIVO AHORA";
-    const alqBadge = esAlq ? `<span style="font-size:0.68rem; background:rgba(46,204,113,0.2); border:1px solid var(--green); color:var(--green); padding:1px 6px; border-radius:10px; margin-left:6px;">💎 EVENTO ALQUIMIA</span>` : "";
+    const ico = activo.tipo_evento === "especial"
+      ? `${svgIcon("calendar", "obj-icon")} Especial`
+      : activo.tipo_evento === "grupo"
+        ? `${svgIcon("users", "obj-icon")} Grupo`
+        : `${svgIcon("bolt", "obj-icon")} Activo ahora`;
+    const alqBadge = esAlq ? '<span class="event-tag">Alquimia</span>' : "";
     let tip = escapeHtml(activo.descripcion || "");
     if (esAlq) {
       if (activo.nombre_evento.toLowerCase().includes("cor draconis")) {
-        tip = "💡 <strong>¡Farmea Cors ahora!</strong> Pasa tus 4 granjeros para duplicar cors durante esta franja.";
+        tip = "<strong>¡Farmea Cors ahora!</strong> Pasa tus 4 granjeros para duplicar cors durante esta franja.";
       } else if (activo.nombre_evento.toLowerCase().includes("alubia")) {
-        tip = "💡 <strong>¡Cosecha de Alubias!</strong> Acumula alubias para subir tu DSS a +4 / +6.";
+        tip = "<strong>¡Cosecha de Alubias!</strong> Acumula alubias para subir tu DSS a +4 / +6.";
       }
     }
 
     el.innerHTML = `
       <div class="radar-header"><span>${ico} ${badge} ${alqBadge}</span><span>${activo.hora_inicio} – ${activo.hora_fin}</span></div>
-      <div class="radar-content">💎 ${escapeHtml(activo.nombre_evento)}</div>
+      <div class="radar-content">${escapeHtml(activo.nombre_evento)}</div>
       <div style="font-size:0.8rem; color:${esAlq ? 'var(--green)' : 'var(--text-muted)'}; margin-top:4px;">${tip}</div>`;
   } else if (proximos.length > 0) {
     const prox = proximos[0];
     const esAlqProx = esEventoAlquimia(prox.nombre_evento);
-    const alqBadge = esAlqProx ? `<span style="font-size:0.68rem; background:rgba(46,204,113,0.2); border:1px solid var(--green); color:var(--green); padding:1px 6px; border-radius:10px; margin-left:6px;">💎 ALQUIMIA</span>` : "";
+    const alqBadge = esAlqProx ? '<span class="event-tag">Alquimia</span>' : "";
     el.innerHTML = `
-      <div class="radar-header"><span>⏰ PRÓXIMO HOY ${badge} ${alqBadge}</span><span>Inicia ${prox.hora_inicio}</span></div>
+      <div class="radar-header"><span>${svgIcon("clock", "obj-icon")} Próximo hoy ${badge} ${alqBadge}</span><span>Inicia ${prox.hora_inicio}</span></div>
       <div class="radar-content">${escapeHtml(prox.nombre_evento)}</div>
       <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${escapeHtml(prox.descripcion || "")}</div>
       ${proximos.length > 1 ? `<div style="font-size:0.75rem; color:var(--text-dim); margin-top:6px;">+${proximos.length-1} más hoy</div>` : ""}`;
   } else {
-    el.innerHTML = `<div class="radar-header"><span>📅 RADAR ${badge}</span></div><div class="radar-content" style="font-size:0.85rem; color:var(--text-muted);">Sin eventos hoy para ${escapeHtml(servidor)}.</div>`;
+    el.innerHTML = `<div class="radar-header"><span>${svgIcon("calendar", "obj-icon")} Radar ${badge}</span></div><div class="radar-content" style="font-size:0.85rem; color:var(--text-muted);">Sin eventos hoy para ${escapeHtml(servidor)}.</div>`;
   }
 }
 
@@ -1313,7 +1675,7 @@ async function renderVistaEventos() {
   const cont = document.getElementById("eventosList");
   if (!cont) return;
 
-  cont.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; text-align:center; padding:20px 0;">⏳ Cargando calendario de eventos...</p>`;
+  cont.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; text-align:center; padding:20px 0;">Cargando calendario de eventos...</p>`;
 
   const eventos  = await cargarEventosAPI();
   const servidor = STATE.perfil.servidor || "Ruby";
@@ -1326,8 +1688,8 @@ async function renderVistaEventos() {
 
   if (filtrados.length === 0) {
     const mensaje = EVENTOS_API_ERROR
-      ? "⚠️ Sin conexión y sin copia local de eventos guardada."
-      : `⚠️ Sin eventos ${filtroEventosActual === 'alquimia' ? 'de Alquimia' : ''} encontrados para <strong>${escapeHtml(servidor)}</strong>.`;
+      ? "Sin conexión y sin copia local de eventos guardada."
+      : `Sin eventos ${filtroEventosActual === 'alquimia' ? 'de Alquimia' : ''} encontrados para <strong>${escapeHtml(servidor)}</strong>.`;
     cont.innerHTML = `<p style="color:var(--ruby); font-size:0.85rem; text-align:center; padding:20px 0;">${mensaje}</p>`;
     return;
   }
@@ -1355,27 +1717,32 @@ async function renderVistaEventos() {
     const evs = estaticos.filter(ev => ev.dia_semana === dia).sort((a,b) => a.hora_inicio.localeCompare(b.hora_inicio));
     if (!evs.length) return "";
     const esHoy = dia === diaNombreHoy;
-    return `<div style="margin-bottom:10px;">
-      <div style="font-size:0.72rem; font-weight:800; color:${esHoy ? 'var(--gold)':'var(--text-muted)'}; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px;">${esHoy ? '📍 ':'' }${diasLabel[dia]}</div>
+    return `<div class="event-day-group">
+      <div class="event-day ${esHoy ? "today" : ""}">${diasLabel[dia]}</div>
       ${evs.map(ev => {
         const activo = esHoy && estaActivo(ev.hora_inicio, ev.hora_fin, horaActual);
         const esAlq = esEventoAlquimia(ev.nombre_evento);
-        return `<div style="display:flex;justify-content:space-between;align-items:center;background:${activo?'rgba(46,204,113,0.1)':'var(--bg-input)'};padding:6px 10px;border-radius:var(--radius-sm);margin-bottom:3px;border:1px solid ${activo?'var(--green)':esHoy?'rgba(212,160,23,0.2)':'var(--border-card)'};">
-          <span style="font-size:0.82rem;font-weight:600;color:${activo?'var(--green)':'var(--text-main)'};">
-            ${activo?'🟢 ':''}${escapeHtml(ev.nombre_evento)}
-            ${esAlq ? '<span style="font-size:0.65rem; background:rgba(46,204,113,0.15); color:var(--green); border:1px solid var(--green); padding:1px 4px; border-radius:4px; margin-left:4px;">💎 Alquimia</span>' : ''}
-          </span>
-          <span style="font-size:0.72rem;color:var(--gold);font-family:monospace;white-space:nowrap;margin-left:8px;">${ev.hora_inicio}–${ev.hora_fin}</span>
+        const claveNotif = claveEventoNotificacion(ev);
+        const notifActiva = notificacionEventoActiva(claveNotif);
+        return `<div class="event-row ${activo ? "active" : ""}">
+          <div class="event-main">
+            <div class="event-name">
+              ${escapeHtml(ev.nombre_evento)}
+              ${esAlq ? '<span class="event-tag">Alquimia</span>' : ''}
+            </div>
+          </div>
+          <div class="event-meta">
+            <span class="event-time">${ev.hora_inicio}–${ev.hora_fin}</span>
+            <button class="btn-notif ${notifActiva ? 'active' : ''}" data-notif-key="${escapeHtml(claveNotif)}" data-notif-nombre="${escapeHtml(ev.nombre_evento)}" title="${notifActiva ? 'Desactivar aviso' : 'Activar aviso'}" aria-label="${notifActiva ? 'Desactivar aviso' : 'Activar aviso'}">${iconoCampana(notifActiva)}</button>
+          </div>
         </div>`;
       }).join("")}
     </div>`;
   }).join("");
 
   const htmlEstaticos = estaticos.length ? `
-    <div style="margin-bottom:18px;">
-      <div style="font-size:0.75rem;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;border-bottom:1px solid var(--border-card);padding-bottom:6px;">
-        📅 Calendario Semanal Fijo ${filtroEventosActual === 'alquimia' ? '(Filtrado Alquimia)' : '(Hora local)'}
-      </div>
+    <div class="event-section">
+      <div class="event-section-title">Calendario semanal ${filtroEventosActual === 'alquimia' ? '· Alquimia' : ''}</div>
       ${filasDias}
     </div>` : "";
 
@@ -1391,45 +1758,54 @@ async function renderVistaEventos() {
     .sort((a,b) => a.fecha.localeCompare(b.fecha) || a.hora_inicio.localeCompare(b.hora_inicio));
 
   const htmlMes = eventosMes.length ? `
-    <div>
-      <div style="font-size:0.75rem;font-weight:800;color:var(--ruby);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;border-bottom:1px solid var(--border-card);padding-bottom:6px;">
-        🗓️ ${meses[mesActual]} ${añoActual} — Eventos Especiales ${filtroEventosActual === 'alquimia' ? '(Alquimia)' : ''}
-      </div>
+    <div class="event-section">
+      <div class="event-section-title monthly">${meses[mesActual]} ${añoActual} · Eventos especiales ${filtroEventosActual === 'alquimia' ? '· Alquimia' : ''}</div>
       ${eventosMes.map(ev => {
         const esPasado = ev.fecha < fechaHoy;
         const esHoy2   = ev.fecha === fechaHoy;
         const activo   = esHoy2 && estaActivo(ev.hora_inicio, ev.hora_fin, horaActual);
         const dia      = parseInt(ev.fecha.split("-")[2]);
         const esAlq    = esEventoAlquimia(ev.nombre_evento);
-        return `<div style="display:flex;justify-content:space-between;align-items:flex-start;background:${activo?'rgba(46,204,113,0.1)':esPasado?'rgba(255,255,255,0.02)':'var(--bg-input)'};padding:8px 10px;border-radius:var(--radius-sm);margin-bottom:4px;border:1px solid ${activo?'var(--green)':esHoy2?'rgba(212,160,23,0.3)':'var(--border-card)'};opacity:${esPasado?'0.45':'1'};">
-          <div>
-            <div style="font-size:0.82rem;font-weight:600;color:${activo?'var(--green)':esPasado?'var(--text-muted)':'var(--text-main)'};">
-              ${activo?'🟢 ':''}${escapeHtml(ev.nombre_evento)}
-              ${esAlq ? '<span style="font-size:0.65rem; background:rgba(46,204,113,0.15); color:var(--green); border:1px solid var(--green); padding:1px 4px; border-radius:4px; margin-left:4px;">💎 Alquimia</span>' : ''}
+        const claveNotif = claveEventoNotificacion(ev);
+        const notifActiva = notificacionEventoActiva(claveNotif);
+        return `<div class="event-row event-row-month ${activo ? "active" : ""} ${esPasado ? "past" : ""}">
+          <div class="event-main">
+            <div class="event-name">
+              ${escapeHtml(ev.nombre_evento)}
+              ${esAlq ? '<span class="event-tag">Alquimia</span>' : ''}
             </div>
-            ${ev.descripcion ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${escapeHtml(ev.descripcion)}</div>` : ""}
+            ${ev.descripcion ? `<div class="event-desc">${escapeHtml(ev.descripcion)}</div>` : ""}
           </div>
-          <div style="text-align:right;flex-shrink:0;margin-left:10px;">
-            <div style="font-size:0.72rem;color:var(--text-dim);">${dia} ${meses[mesActual].slice(0,3)}</div>
-            <div style="font-size:0.72rem;color:var(--gold);font-family:monospace;">${ev.hora_inicio}${ev.hora_fin?'–'+ev.hora_fin:''}</div>
+          <div class="event-meta event-meta-col">
+            <div class="event-date">${dia} ${meses[mesActual].slice(0,3)}</div>
+            <div class="event-time">${ev.hora_inicio}${ev.hora_fin ? '–' + ev.hora_fin : ''}</div>
+            <button class="btn-notif ${notifActiva ? 'active' : ''}" data-notif-key="${escapeHtml(claveNotif)}" data-notif-nombre="${escapeHtml(ev.nombre_evento)}" title="${notifActiva ? 'Desactivar aviso' : 'Activar aviso'}" aria-label="${notifActiva ? 'Desactivar aviso' : 'Activar aviso'}">${iconoCampana(notifActiva)}</button>
           </div>
         </div>`;
       }).join("")}
     </div>` :
-    `<p style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:10px 0;">Sin eventos ${filtroEventosActual === 'alquimia' ? 'de Alquimia' : ''} en ${meses[mesActual]} para <strong>${escapeHtml(servidor)}</strong>.</p>`;
+    `<p class="event-empty">Sin eventos ${filtroEventosActual === 'alquimia' ? 'de Alquimia' : ''} en ${meses[mesActual]} para <strong>${escapeHtml(servidor)}</strong>.</p>`;
 
   cont.innerHTML = htmlEstaticos + htmlMes;
 }
 
 
 const GEMA_INFO_MAP = {
-  rubi:     { nombre: "Rubí", icono: "🔴", color: "var(--ruby)", stat: "Valor Ataque + Media" },
-  jade:     { nombre: "Jade", icono: "🟢", color: "var(--green)", stat: "Max HP + Robo Vida" },
-  onice:    { nombre: "Ónice", icono: "⚫", color: "#b0b8c4", stat: "Bloqueo + Res. Crítico" },
-  diamante: { nombre: "Diamante", icono: "⚪", color: "#ffffff", stat: "Ataque Mágico + Habilidad" },
-  zafiro:   { nombre: "Zafiro", icono: "🔵", color: "var(--blue)", stat: "Fuerza vs Razas" },
-  granate:  { nombre: "Granate", icono: "🟠", color: "var(--gold)", stat: "SP + Res. Relámpago" }
+  rubi:     { nombre: "Rubí", color: "var(--ruby)", stat: "Valor Ataque + Media" },
+  jade:     { nombre: "Jade", color: "var(--green)", stat: "Max HP + Robo Vida" },
+  onice:    { nombre: "Ónice", color: "#b0b8c4", stat: "Bloqueo + Res. Crítico" },
+  diamante: { nombre: "Diamante", color: "#ffffff", stat: "Ataque Mágico + Habilidad" },
+  zafiro:   { nombre: "Zafiro", color: "var(--blue)", stat: "Fuerza vs Razas" },
+  granate:  { nombre: "Granate", color: "var(--gold)", stat: "SP + Res. Relámpago" }
 };
+
+function iconoGema(key, className = "gem-svg") {
+  const info = GEMA_INFO_MAP[key] || GEMA_INFO_MAP.rubi;
+  return `<svg class="${className}" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M6 3h12l3 6-9 12L3 9l3-6Z" fill="${info.color}" stroke="rgba(255,255,255,.45)" stroke-width="1"></path>
+    <path d="M3 9h18M8.5 3 12 21M15.5 3 12 21" fill="none" stroke="rgba(0,0,0,.28)" stroke-width=".8"></path>
+  </svg>`;
+}
 
 function renderRuedaDSS() {
   const gemaKey = STATE.ruedaDSS.gemaActiva || "rubi";
@@ -1449,12 +1825,10 @@ function renderRuedaDSS() {
         : "Sin stock";
 
       return `
-        <div onclick="cambiarGemaActiva('${k}')" style="background:${esActiva ? 'rgba(212,160,23,0.18)' : 'var(--bg-input)'}; border:1px solid ${esActiva ? 'var(--gold)' : 'var(--border-card)'}; border-radius:var(--radius-sm); padding:6px 4px; text-align:center; cursor:pointer; transition:all 0.15s; box-shadow:${esActiva ? '0 0 10px var(--gold-glow)' : 'none'};">
-          <div style="font-size:1.15rem; line-height:1;">${g.icono}</div>
-          <div style="font-size:0.72rem; font-weight:800; color:${esActiva ? 'var(--gold)' : 'var(--text-main)'}; margin-top:2px;">${g.nombre}</div>
-          <div style="font-size:0.58rem; color:${totalPiedras > 0 ? 'var(--text-muted)' : 'var(--text-dim)'}; margin-top:2px; font-family:monospace;">
-            ${subtitulo}
-          </div>
+        <div class="gem-card ${esActiva ? "active" : ""}" onclick="cambiarGemaActiva('${k}')">
+          <div class="gem-icon">${iconoGema(k)}</div>
+          <div class="gem-name">${g.nombre}</div>
+          <div class="gem-stock">${subtitulo}</div>
         </div>
       `;
     }).join('');
@@ -1463,7 +1837,9 @@ function renderRuedaDSS() {
   // 2. Actualizar detalles de la Gema Activa
   const infoActiva = GEMA_INFO_MAP[gemaKey] || GEMA_INFO_MAP.rubi;
   const titleEl = document.getElementById("activeGemaTitle");
-  if (titleEl) titleEl.textContent = `${infoActiva.icono} ${infoActiva.nombre} (${infoActiva.stat})`;
+  if (titleEl) titleEl.innerHTML = `${iconoGema(gemaKey)} <span>${infoActiva.nombre}</span>`;
+  const statEl = document.getElementById("activeGemaStat");
+  if (statEl) statEl.textContent = infoActiva.stat;
 
   // Badge muestra totales del almacén de la gema activa
   const badgeEl = document.getElementById("activeGemaBadge");
@@ -1496,7 +1872,7 @@ function renderRuedaDSS() {
 
   // Actualizar badge en Asistente RNG
   const asisBadge = document.getElementById("asistenteGemaBadge");
-  if (asisBadge) asisBadge.textContent = `${infoActiva.icono} ${infoActiva.nombre}`;
+  if (asisBadge) asisBadge.innerHTML = `${iconoGema(gemaKey, "badge-gem")} <span>${infoActiva.nombre}</span>`;
 
   // 3. Calculadora y Proyecciones DSS
   const calcInfo = document.getElementById("dssCalculadoraInfo");
@@ -1510,18 +1886,18 @@ function renderRuedaDSS() {
 
     calcInfo.innerHTML = `
       <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-        <span>🎯 Potencial directo en almacén:</span>
+        <span>${svgIcon("target", "obj-icon")} Potencial directo en almacén:</span>
         <strong style="color:var(--gold);">+${potLegendarias} Legendarias / +${potMiticas} Míticas</strong>
       </div>
       <div style="padding: 8px 10px; background: rgba(212, 160, 23, 0.08); border-left: 3px solid var(--gold); border-radius: 4px; font-size: 0.74rem; line-height: 1.45; margin-bottom: 6px;">
-        <strong style="color: var(--gold);">📐 Pirámide de Claridad a Excelente (Metin2):</strong><br>
-        • <strong>Mate ➔ Claro:</strong> Requiere 2 Míticas Mate (Colchón seguro: <strong>4 Míticas</strong>).<br>
-        • <strong>Claro ➔ Límpido:</strong> Requiere 2 Claras (Equivale a 4 Míticas Mate exitosas).<br>
-        • <strong>Límpido ➔ Brillante:</strong> Requiere 2 Límpidas (Equivale a 8 Míticas Mate exitosas).<br>
-        • <strong>Brillante ➔ Excelente:</strong> Requiere 2 Brillantes (Equivale a 16+ Míticas Mate teóricas; ~25-35 reales por tasa del ~30-35%).
+        <strong style="color: var(--gold);">${svgIcon("note", "obj-icon")} Pirámide de Claridad a Excelente (Metin2):</strong><br>
+        • <strong>Mate → Claro:</strong> Requiere 2 Míticas Mate (Colchón seguro: <strong>4 Míticas</strong>).<br>
+        • <strong>Claro → Límpido:</strong> Requiere 2 Claras (Equivale a 4 Míticas Mate exitosas).<br>
+        • <strong>Límpido → Brillante:</strong> Requiere 2 Límpidas (Equivale a 8 Míticas Mate exitosas).<br>
+        • <strong>Brillante → Excelente:</strong> Requiere 2 Brillantes (Equivale a 16+ Míticas Mate teóricas; ~25-35 reales por tasa del ~30-35%).
       </div>
       <div style="font-size:0.73rem; color:var(--text-muted); line-height:1.4;">
-        ⚠️ <strong>Regla Anti-Quiebra de Claridad:</strong> Nunca fusiones pureza con solo 2 Míticas. Un fallo destruye la piedra y paraliza semanas de trabajo. Acumula siempre <strong>4+ Míticas</strong> antes de intentar subir pureza.
+        ${svgIcon("shield", "obj-icon")} <strong>Regla Anti-Quiebra de Claridad:</strong> Nunca fusiones pureza con solo 2 Míticas. Un fallo destruye la piedra y paraliza semanas de trabajo. Acumula siempre <strong>4+ Míticas</strong> antes de intentar subir pureza.
       </div>
     `;
   }
@@ -1544,7 +1920,7 @@ function renderFinanzas() {
   const elWons = document.getElementById("saldoWons");
   if (elWons) elWons.textContent = STATE.finanzas.saldoWons;
   const elYang = document.getElementById("saldoYang");
-  if (elYang) elYang.textContent = `${STATE.finanzas.saldoYangKK}kk`;
+  if (elYang) elYang.textContent = STATE.finanzas.saldoYangKK;
 
   const metaW = STATE.finanzas.metaCostoWons || 35;
   const actualW = (STATE.finanzas.saldoWons || 0) + ((STATE.finanzas.saldoYangKK || 0) / 100);
@@ -1579,7 +1955,7 @@ function renderFinanzas() {
           <td style="color: var(--gold); font-size:0.8rem;">${precioTxt}</td>
           <td>
             <button class="btn-complete done" onclick="abrirModalVentaAlquimia('${k}')" style="padding: 6px 12px; font-size: 0.78rem;">
-              Vender ➔
+              ${svgIcon("chevronRight", "btn-svg")} Vender
             </button>
           </td>
         </tr>
@@ -1798,12 +2174,16 @@ function renderCalculadoraLuzVerde() {
     }
   }
 
+  const dictamenLimpio = dictamen
+    .replace(/^[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{FE0F}\s]+/u, "")
+    .replace(/➔/g, "→");
+
   el.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-      <strong>${stockLabel}</strong>
+    <div class="calc-head">
+      <span class="calc-label">${stockLabel}</span>
       <span class="semaphore-badge semaphore-${semColor}">${prob}</span>
     </div>
-    <p style="font-size: 0.85rem; color: var(--text-main); margin:0;">${dictamen}</p>
+    <p class="calc-dictamen">${dictamenLimpio}</p>
   `;
 }
 
@@ -2002,15 +2382,25 @@ function instalarPWA() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  renderIconosEstaticos();
   verificarCambioDia();
   renderAll();
   renderSessionTimer();
+  iniciarGestosSwipe();
+  iniciarListaNotificaciones();
 
   // Mantener los contadores al día aunque la app quede abierta varios días
   setInterval(verificarCambioDia, 60 * 1000);
   document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) verificarCambioDia();
+    if (!document.hidden) {
+      verificarCambioDia();
+      procesarNotificacionesEventos();
+    }
   });
+
+  // Comprobar eventos activos seleccionados cada minuto
+  setInterval(procesarNotificacionesEventos, 60 * 1000);
+  setTimeout(procesarNotificacionesEventos, 3000);
 
   // Cerrar modales haciendo clic en el fondo oscuro
   document.querySelectorAll(".modal-overlay").forEach(overlay => {
@@ -2029,6 +2419,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("./sw.js").catch(console.error);
+    navigator.serviceWorker.register("./sw.js")
+      .then(() => procesarNotificacionesEventos())
+      .catch(console.error);
   }
 });
