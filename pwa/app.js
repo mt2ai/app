@@ -47,35 +47,81 @@ let EVENTOS_API_ERROR = false;
 /**
  * Carga los eventos desde la API (con caché en memoria por sesión).
  */
+let EVENTOS_API_PROMISE = null;
+let EVENTOS_API_LAST_ERROR = 0;
+const EVENTOS_API_STORAGE_KEY = "naaytracker_eventos_cache";
+const EVENTOS_API_REINTENTO_MS = 5 * 60 * 1000;
+
+function leerEventosCacheLocal() {
+  try {
+    const raw = localStorage.getItem(EVENTOS_API_STORAGE_KEY);
+    const data = raw ? JSON.parse(raw) : [];
+    return Array.isArray(data) ? data : [];
+  } catch (e) {
+    return [];
+  }
+}
+
 async function cargarEventosAPI() {
   if (EVENTOS_API_CACHE !== null) return EVENTOS_API_CACHE;
-  if (EVENTOS_API_LOADING) {
-    return new Promise(resolve => {
-      const check = setInterval(() => {
-        if (EVENTOS_API_CACHE !== null || EVENTOS_API_ERROR) {
-          clearInterval(check);
-          resolve(EVENTOS_API_CACHE || []);
-        }
-      }, 150);
-    });
+
+  // Si falló hace poco, usar la última copia guardada y no saturar la red
+  if (EVENTOS_API_ERROR && Date.now() - EVENTOS_API_LAST_ERROR < EVENTOS_API_REINTENTO_MS) {
+    return leerEventosCacheLocal();
   }
 
+  if (EVENTOS_API_PROMISE) return EVENTOS_API_PROMISE;
+
   EVENTOS_API_LOADING = true;
-  try {
-    const resp = await fetch(API_EVENTOS_URL);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    EVENTOS_API_CACHE = Array.isArray(data) ? data : [];
-    EVENTOS_API_ERROR = false;
-    console.log(`[NaayTracker] ${EVENTOS_API_CACHE.length} eventos cargados.`);
-  } catch (err) {
-    console.warn("[NaayTracker] API no disponible:", err.message);
-    EVENTOS_API_CACHE = [];
-    EVENTOS_API_ERROR = true;
-  } finally {
-    EVENTOS_API_LOADING = false;
-  }
-  return EVENTOS_API_CACHE;
+  EVENTOS_API_PROMISE = (async () => {
+    try {
+      const resp = await fetch(API_EVENTOS_URL);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      EVENTOS_API_CACHE = Array.isArray(data) ? data : [];
+      EVENTOS_API_ERROR = false;
+      try {
+        localStorage.setItem(EVENTOS_API_STORAGE_KEY, JSON.stringify(EVENTOS_API_CACHE));
+      } catch (e) {}
+      console.log(`[NaayTracker] ${EVENTOS_API_CACHE.length} eventos cargados.`);
+      return EVENTOS_API_CACHE;
+    } catch (err) {
+      console.warn("[NaayTracker] API no disponible:", err.message);
+      EVENTOS_API_ERROR = true;
+      EVENTOS_API_LAST_ERROR = Date.now();
+      return leerEventosCacheLocal();
+    } finally {
+      EVENTOS_API_LOADING = false;
+      EVENTOS_API_PROMISE = null;
+    }
+  })();
+
+  return EVENTOS_API_PROMISE;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, ch => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[ch]));
+}
+
+function fechaLocalISO(d = new Date()) {
+  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, "0")}-${d.getDate().toString().padStart(2, "0")}`;
+}
+
+function inicioSemanaISO(d = new Date()) {
+  const copia = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const offset = (copia.getDay() + 6) % 7; // 0 = lunes
+  copia.setDate(copia.getDate() - offset);
+  return fechaLocalISO(copia);
+}
+
+function indiceDiaSemana(d = new Date()) {
+  return (d.getDay() + 6) % 7; // 0 = lunes ... 6 = domingo
 }
 
 /**
@@ -116,7 +162,7 @@ function getOffsetMadridALocal() {
  * la hora local cae en el día anterior (-1) o siguiente (+1).
  */
 function madridHoraALocal(hhmm) {
-  if (!hhmm || hhmm === "00:00" && false) return { hora: "00:00", diaDelta: 0 };
+  if (!hhmm) return { hora: "00:00", diaDelta: 0 };
   const [hh, mm] = hhmm.split(":").map(Number);
   const totalMin = hh * 60 + mm;
   const offsetMin = getOffsetMadridALocal(); // minutos que Madrid lleva de ventaja
@@ -236,12 +282,14 @@ const HITOS_PLAN_MAESTRO = [
 ];
 
 const DEFAULT_STATE = {
-  version: 4,
+  version: 5,
   perfil: {
     nombre: "Mi Cuenta",
     servidor: "Ruby"
   },
   semanaActual: 1,
+  ultimoDia: "",
+  inicioSemana: "",
   corsTotal: 0,
   corsExtraEventos: 0,
   corsSemanaActual: 0,
@@ -290,70 +338,133 @@ const DEFAULT_STATE = {
 
 let STATE = loadState();
 
-function loadState() {
-  const saved = localStorage.getItem("naaytracker_state");
-  if (!saved) return JSON.parse(JSON.stringify(DEFAULT_STATE));
-  try {
-    const parsed = JSON.parse(saved);
-    // Deep merge: fusionar subobjetos clave para no perder propiedades nuevas en DEFAULT_STATE
-    const merged = Object.assign({}, DEFAULT_STATE, parsed);
-    const subKeys = ["perfil", "ruedaDSS", "consumibles", "finanzas"];
-    subKeys.forEach(k => {
-      if (DEFAULT_STATE[k] && parsed[k] && typeof parsed[k] === "object") {
-        merged[k] = Object.assign({}, DEFAULT_STATE[k], parsed[k]);
-      }
-    });
-    // Deep merge de ruedaDSS.slots y finanzas.alquimiaSecundaria
-    if (DEFAULT_STATE.ruedaDSS.slots && parsed.ruedaDSS?.slots) {
-      merged.ruedaDSS.slots = Object.assign({}, DEFAULT_STATE.ruedaDSS.slots, parsed.ruedaDSS.slots);
+/**
+ * Fusiona cualquier estado (localStorage o respaldo importado) con los valores
+ * por defecto, preservando datos antiguos pero añadiendo campos nuevos.
+ */
+function mergeStateWithDefaults(parsed) {
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    parsed = {};
+  }
+
+  // Deep merge: fusionar subobjetos clave para no perder propiedades nuevas en DEFAULT_STATE
+  const merged = Object.assign({}, DEFAULT_STATE, parsed);
+  const subKeys = ["perfil", "ruedaDSS", "consumibles", "finanzas"];
+  subKeys.forEach(k => {
+    if (DEFAULT_STATE[k] && parsed[k] && typeof parsed[k] === "object") {
+      merged[k] = Object.assign({}, DEFAULT_STATE[k], parsed[k]);
     }
-    if (DEFAULT_STATE.finanzas.alquimiaSecundaria && parsed.finanzas?.alquimiaSecundaria) {
-      merged.finanzas.alquimiaSecundaria = Object.assign({}, DEFAULT_STATE.finanzas.alquimiaSecundaria, parsed.finanzas.alquimiaSecundaria);
-    }
-    if (merged.finanzas?.alquimiaSecundaria && !merged.finanzas.alquimiaSecundaria.rubi) {
-      merged.finanzas.alquimiaSecundaria.rubi = { nombre: "Rubí Antiguo", stock: 0, ultimoPrecioWons: 0, ultimoPrecioKK: 0 };
-    }
-    if (merged.finanzas) {
-      if (merged.finanzas.precioCompraRubiWons === undefined) merged.finanzas.precioCompraRubiWons = 4.5;
-      if (merged.finanzas.precioCompraRubiKK === undefined) merged.finanzas.precioCompraRubiKK = 0;
-    }
-    // Asegurar objetivos y sincronizar con los 23 hitos del plan maestro
-    if (!merged.objetivos || !Array.isArray(merged.objetivos) || merged.objetivos.length === 0) {
-      merged.objetivos = JSON.parse(JSON.stringify(HITOS_PLAN_MAESTRO));
+  });
+  // Deep merge de ruedaDSS.slots y finanzas.alquimiaSecundaria
+  if (DEFAULT_STATE.ruedaDSS.slots && parsed.ruedaDSS?.slots) {
+    merged.ruedaDSS.slots = Object.assign({}, DEFAULT_STATE.ruedaDSS.slots, parsed.ruedaDSS.slots);
+  }
+  if (DEFAULT_STATE.finanzas.alquimiaSecundaria && parsed.finanzas?.alquimiaSecundaria) {
+    merged.finanzas.alquimiaSecundaria = Object.assign({}, DEFAULT_STATE.finanzas.alquimiaSecundaria, parsed.finanzas.alquimiaSecundaria);
+  }
+  if (merged.finanzas?.alquimiaSecundaria && !merged.finanzas.alquimiaSecundaria.rubi) {
+    merged.finanzas.alquimiaSecundaria.rubi = { nombre: "Rubí Antiguo", stock: 0, ultimoPrecioWons: 0, ultimoPrecioKK: 0 };
+  }
+  if (merged.finanzas) {
+    if (merged.finanzas.precioCompraRubiWons === undefined) merged.finanzas.precioCompraRubiWons = 4.5;
+    if (merged.finanzas.precioCompraRubiKK === undefined) merged.finanzas.precioCompraRubiKK = 0;
+  }
+  // Asegurar objetivos y sincronizar con los 23 hitos del plan maestro
+  if (!merged.objetivos || !Array.isArray(merged.objetivos) || merged.objetivos.length === 0) {
+    merged.objetivos = JSON.parse(JSON.stringify(HITOS_PLAN_MAESTRO));
+  } else {
+    const customObjs = merged.objetivos.filter(o => !o.esHitoPlan && typeof o.id === "number");
+    if ((parsed.version || 0) < 4) {
+      // Migración a versión 4 con los 23 hitos guiados paso a paso
+      merged.objetivos = [...JSON.parse(JSON.stringify(HITOS_PLAN_MAESTRO)), ...customObjs];
     } else {
-      const customObjs = merged.objetivos.filter(o => !o.esHitoPlan && typeof o.id === "number");
-      if ((parsed.version || 0) < 4) {
-        // Migración a versión 4 con los 23 hitos guiados paso a paso
-        merged.objetivos = [...JSON.parse(JSON.stringify(HITOS_PLAN_MAESTRO)), ...customObjs];
-      } else {
-        // Sincronizar hitos del plan maestro preservando si el usuario ya los completó
-        HITOS_PLAN_MAESTRO.forEach(hp => {
-          const existing = merged.objetivos.find(o => o.id === hp.id);
-          if (existing) {
-            existing.texto = hp.texto;
-            existing.etapa = hp.etapa;
-            existing.etapaNombre = hp.etapaNombre;
-            existing.cat = hp.cat;
-            existing.esHitoPlan = true;
-          } else {
-            merged.objetivos.push(Object.assign({}, hp));
-          }
-        });
-      }
-    }
-    // Asegurar propiedades de stock en los slots de la rueda DSS
-    // (claridad/nivel ya no se usan para tracking — solo se preservan si existen en datos antiguos)
-    if (merged.ruedaDSS && merged.ruedaDSS.slots) {
-      Object.keys(merged.ruedaDSS.slots).forEach(k => {
-        if (merged.ruedaDSS.slots[k].stockAntiguas === undefined) merged.ruedaDSS.slots[k].stockAntiguas = 0;
-        if (merged.ruedaDSS.slots[k].stockLegendarias === undefined) merged.ruedaDSS.slots[k].stockLegendarias = 0;
-        if (merged.ruedaDSS.slots[k].stockMiticas === undefined) merged.ruedaDSS.slots[k].stockMiticas = 0;
+      // Sincronizar hitos del plan maestro preservando si el usuario ya los completó
+      HITOS_PLAN_MAESTRO.forEach(hp => {
+        const existing = merged.objetivos.find(o => o.id === hp.id);
+        if (existing) {
+          existing.texto = hp.texto;
+          existing.etapa = hp.etapa;
+          existing.etapaNombre = hp.etapaNombre;
+          existing.cat = hp.cat;
+          existing.esHitoPlan = true;
+        } else {
+          merged.objetivos.push(Object.assign({}, hp));
+        }
       });
     }
-    return merged;
-  } catch (e) {
-    return JSON.parse(JSON.stringify(DEFAULT_STATE));
   }
+  // Asegurar propiedades de stock en los slots de la rueda DSS
+  // (claridad/nivel ya no se usan para tracking — solo se preservan si existen en datos antiguos)
+  if (merged.ruedaDSS && merged.ruedaDSS.slots) {
+    Object.keys(merged.ruedaDSS.slots).forEach(k => {
+      if (merged.ruedaDSS.slots[k].stockAntiguas === undefined) merged.ruedaDSS.slots[k].stockAntiguas = 0;
+      if (merged.ruedaDSS.slots[k].stockLegendarias === undefined) merged.ruedaDSS.slots[k].stockLegendarias = 0;
+      if (merged.ruedaDSS.slots[k].stockMiticas === undefined) merged.ruedaDSS.slots[k].stockMiticas = 0;
+    });
+  }
+  // Normalizar estructura de granjeros
+  if (!Array.isArray(merged.granjeros) || merged.granjeros.length !== 4) {
+    const previos = Array.isArray(merged.granjeros) ? merged.granjeros : [];
+    merged.granjeros = DEFAULT_STATE.granjeros.map((g, i) => Object.assign({}, g, previos[i] || {}));
+  }
+  // Normalizar historial semanal
+  if (!Array.isArray(merged.semanaHistorial) || merged.semanaHistorial.length !== 7) {
+    merged.semanaHistorial = [0, 0, 0, 0, 0, 0, 0];
+  }
+  // Fechas de control diario/semanal
+  if (!merged.ultimoDia) merged.ultimoDia = fechaLocalISO();
+  if (!merged.inicioSemana) merged.inicioSemana = inicioSemanaISO();
+
+  return merged;
+}
+
+function loadState() {
+  const saved = localStorage.getItem("naaytracker_state");
+  if (!saved) return mergeStateWithDefaults(null);
+  try {
+    return mergeStateWithDefaults(JSON.parse(saved));
+  } catch (e) {
+    return mergeStateWithDefaults(null);
+  }
+}
+
+/**
+ * Comprueba cambio de día/semana. Resetea los "hechoHoy" al cambiar de día y
+ * avanza el contador de semanas (reiniciando acumulados) al cambiar de semana.
+ */
+function verificarCambioDia() {
+  const hoy = fechaLocalISO();
+  const semana = inicioSemanaISO();
+  let cambio = false;
+
+  if (!STATE.inicioSemana) {
+    STATE.inicioSemana = semana;
+    cambio = true;
+  } else if (STATE.inicioSemana !== semana) {
+    const msSemana = 7 * 24 * 60 * 60 * 1000;
+    const diff = new Date(semana + "T00:00:00") - new Date(STATE.inicioSemana + "T00:00:00");
+    const semanasTranscurridas = Math.max(1, Math.round(diff / msSemana));
+    STATE.semanaActual = Math.min(36, (STATE.semanaActual || 1) + semanasTranscurridas);
+    STATE.corsSemanaActual = 0;
+    STATE.semanaHistorial = [0, 0, 0, 0, 0, 0, 0];
+    STATE.inicioSemana = semana;
+    cambio = true;
+  }
+
+  if (!STATE.ultimoDia) {
+    STATE.ultimoDia = hoy;
+    cambio = true;
+  } else if (STATE.ultimoDia !== hoy) {
+    (STATE.granjeros || []).forEach(g => {
+      g.hechoHoy = false;
+      g.hora = "";
+    });
+    STATE.ultimoDia = hoy;
+    cambio = true;
+  }
+
+  if (cambio) saveState();
+  return cambio;
 }
 
 function cambiarConsumible(clave, delta) {
@@ -409,9 +520,16 @@ function switchZoom(zoomKey) {
 // 4. CONTROL DE OBJETIVOS & HITOS DEL PLAN
 // ==========================================
 
-let filtroObjetivosActual = "plan";
 let activeFinanzasTab = "plan";
 let filtroEtapaActual = 0;
+
+const CAT_COLORS_OBJETIVOS = {
+  alquimia: { icon: "💎", label: "Alquimia" },
+  equipo:   { icon: "🛡️", label: "Equipo" },
+  farmeo:   { icon: "⚡", label: "Farmeo" },
+  finanzas: { icon: "💰", label: "Finanzas" },
+  general:  { icon: "🎯", label: "Meta" }
+};
 
 function switchFinanzasTab(tabKey) {
   activeFinanzasTab = tabKey;
@@ -424,6 +542,7 @@ function switchFinanzasTab(tabKey) {
   if (tabPlan) tabPlan.style.display = tabKey === "plan" ? "block" : "none";
   if (tabMercado) tabMercado.style.display = tabKey === "mercado" ? "block" : "none";
   if (tabMetas) tabMetas.style.display = tabKey === "metas" ? "block" : "none";
+  renderObjetivos();
 }
 
 function setFiltroEtapa(etapaNum) {
@@ -434,21 +553,36 @@ function setFiltroEtapa(etapaNum) {
   renderObjetivos();
 }
 
-function setFiltroObjetivos(filtro) {
-  filtroObjetivosActual = filtro;
-  const btnP = document.getElementById("btnFiltroObjPlan");
-  const btnC = document.getElementById("btnFiltroObjCustom");
-  const btnT = document.getElementById("btnFiltroObjTodos");
-  if (btnP) btnP.classList.toggle("active", filtro === "plan");
-  if (btnC) btnC.classList.toggle("active", filtro === "custom");
-  if (btnT) btnT.classList.toggle("active", filtro === "todos");
-  renderObjetivos();
+function renderListaObjetivosHtml(lista, mensajeVacio) {
+  if (!lista.length) {
+    return `<p style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px 0;">${mensajeVacio}</p>`;
+  }
+
+  return lista.map(o => {
+    const c = CAT_COLORS_OBJETIVOS[o.cat] || CAT_COLORS_OBJETIVOS.general;
+    const badgeEtapa = o.esHitoPlan
+      ? `<span style="font-size:0.68rem; background:rgba(212,160,23,0.15); border:1px solid var(--gold); color:var(--gold); padding:1px 6px; border-radius:10px; margin-left:6px; white-space:nowrap;">E${o.etapa || 1}</span>`
+      : `<span style="font-size:0.68rem; background:rgba(52,152,219,0.15); border:1px solid var(--blue); color:var(--blue); padding:1px 6px; border-radius:10px; margin-left:6px; white-space:nowrap;">Personal</span>`;
+
+    const btnDel = o.esHitoPlan
+      ? ""
+      : `<button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem; color:var(--text-dim);" onclick="eliminarObjetivo('${escapeHtml(o.id)}')" title="Eliminar meta personalizada">✕</button>`;
+
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid ${o.completado ? 'rgba(46,204,113,0.3)' : 'var(--border-card)'};">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
+          <input type="checkbox" ${o.completado ? 'checked' : ''} onchange="toggleObjetivo('${escapeHtml(o.id)}')" style="accent-color:var(--green); width:16px; height:16px; cursor:pointer;">
+          <span style="font-size:0.83rem; color:${o.completado ? 'var(--text-muted)' : 'var(--text-main)'}; text-decoration:${o.completado ? 'line-through' : 'none'}; line-height:1.3;">
+            ${c.icon} ${escapeHtml(o.texto)} ${badgeEtapa}
+          </span>
+        </label>
+        ${btnDel}
+      </div>
+    `;
+  }).join('');
 }
 
 function renderObjetivos() {
-  const cont = document.getElementById("listaObjetivos");
-  if (!cont) return;
-
   const objs = STATE.objetivos || [];
   const hitosPlan = objs.filter(o => o.esHitoPlan);
   const hechosPlan = hitosPlan.filter(o => o.completado).length;
@@ -470,55 +604,22 @@ function renderObjetivos() {
     `;
   }
 
-  // Filtrar según etapa y categoría
-  let filtrados = objs;
-  if (activeFinanzasTab === "plan" || filtroObjetivosActual === "plan") {
-    filtrados = objs.filter(o => o.esHitoPlan);
+  // Hitos del plan (pestaña Plan), filtrados por etapa
+  const contPlan = document.getElementById("listaObjetivos");
+  if (contPlan) {
+    let filtrados = hitosPlan;
     if (filtroEtapaActual > 0) {
       filtrados = filtrados.filter(o => o.etapa === filtroEtapaActual);
     }
-  } else if (activeFinanzasTab === "metas" || filtroObjetivosActual === "custom") {
-    filtrados = objs.filter(o => !o.esHitoPlan);
+    contPlan.innerHTML = renderListaObjetivosHtml(filtrados, "No hay hitos en esta etapa.");
   }
 
-  if (filtrados.length === 0) {
-    const msg = filtroObjetivosActual === "custom"
-      ? "No has añadido metas personales aún. ¡Escribe una abajo para agregarla!"
-      : "No hay objetivos en esta categoría.";
-    cont.innerHTML = `<p style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px 0;">${msg}</p>`;
-    return;
+  // Metas personales (pestaña Mi Meta)
+  const contCustom = document.getElementById("listaObjetivosCustom");
+  if (contCustom) {
+    const custom = objs.filter(o => !o.esHitoPlan);
+    contCustom.innerHTML = renderListaObjetivosHtml(custom, "No has añadido metas personales aún. ¡Escribe una arriba para agregarla!");
   }
-
-  const catColors = {
-    alquimia: { icon: "💎", label: "Alquimia" },
-    equipo:   { icon: "🛡️", label: "Equipo" },
-    farmeo:   { icon: "⚡", label: "Farmeo" },
-    finanzas: { icon: "💰", label: "Finanzas" },
-    general:  { icon: "🎯", label: "Meta" }
-  };
-
-  cont.innerHTML = filtrados.map(o => {
-    const c = catColors[o.cat] || catColors.general;
-    const badgeEtapa = o.esHitoPlan
-      ? `<span style="font-size:0.68rem; background:rgba(212,160,23,0.15); border:1px solid var(--gold); color:var(--gold); padding:1px 6px; border-radius:10px; margin-left:6px; white-space:nowrap;">E${o.etapa || 1}</span>`
-      : `<span style="font-size:0.68rem; background:rgba(52,152,219,0.15); border:1px solid var(--blue); color:var(--blue); padding:1px 6px; border-radius:10px; margin-left:6px; white-space:nowrap;">Personal</span>`;
-
-    const btnDel = o.esHitoPlan
-      ? ""
-      : `<button class="btn-icon" style="width:24px; height:24px; font-size:0.75rem; color:var(--text-dim);" onclick="eliminarObjetivo('${o.id}')" title="Eliminar meta personalizada">✕</button>`;
-
-    return `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-input); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid ${o.completado ? 'rgba(46,204,113,0.3)' : 'var(--border-card)'};">
-        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
-          <input type="checkbox" ${o.completado ? 'checked' : ''} onchange="toggleObjetivo('${o.id}')" style="accent-color:var(--green); width:16px; height:16px; cursor:pointer;">
-          <span style="font-size:0.83rem; color:${o.completado ? 'var(--text-muted)' : 'var(--text-main)'}; text-decoration:${o.completado ? 'line-through' : 'none'}; line-height:1.3;">
-            ${c.icon} ${o.texto} ${badgeEtapa}
-          </span>
-        </label>
-        ${btnDel}
-      </div>
-    `;
-  }).join('');
 }
 
 function toggleObjetivo(id) {
@@ -548,13 +649,6 @@ function agregarNuevoObjetivo() {
 
   STATE.objetivos.push({ id: nuevoId, texto: txt, completado: false, cat, esHitoPlan: false });
   inp.value = "";
-  filtroObjetivosActual = "custom";
-  const btnC = document.getElementById("btnFiltroObjCustom");
-  const btnP = document.getElementById("btnFiltroObjPlan");
-  const btnT = document.getElementById("btnFiltroObjTodos");
-  if (btnC) btnC.classList.add("active");
-  if (btnP) btnP.classList.remove("active");
-  if (btnT) btnT.classList.remove("active");
   saveState();
 }
 
@@ -704,6 +798,11 @@ let stopLossActive = false;
 let stopLossTimerId = null;
 let stopLossRemaining = 0;
 
+function setJitterStatus(texto) {
+  const el = document.getElementById("jitterStatus");
+  if (el) el.textContent = texto;
+}
+
 function ejecutarIntentoAlquimia(esExito) {
   if (stopLossActive) {
     alert("🚨 STOP-LOSS ACTIVO: Espera a que termine la pausa de 60 segundos.");
@@ -714,6 +813,38 @@ function ejecutarIntentoAlquimia(esExito) {
   const gemaSlot = STATE.ruedaDSS.slots[gemaKey];
   const tipoIntento = document.getElementById("tipoIntentoAlquimia")?.value || "antiguas";
   const autoSync = document.getElementById("chkAutoSyncStock")?.checked ?? true;
+
+  if (!gemaSlot) {
+    alert("⚠️ No hay una gema activa seleccionada en el Almacén DSS.");
+    return;
+  }
+
+  // Validar material antes de registrar el intento (evita éxitos sin stock)
+  if (autoSync) {
+    const nAnt = gemaSlot.stockAntiguas || 0;
+    const nLeg = gemaSlot.stockLegendarias || 0;
+    const nMit = gemaSlot.stockMiticas || 0;
+    const nAlu = STATE.consumibles.alubiasVerdes || 0;
+    let faltante = "";
+
+    if (tipoIntento === "antiguas") {
+      if (esExito && nAnt < 2) faltante = "Necesitas 2 piedras Antiguas para registrar un éxito.";
+      if (!esExito && nAnt < 1) faltante = "No tienes piedras Antiguas que perder.";
+    } else if (tipoIntento === "legendarias") {
+      if (esExito && nLeg < 2) faltante = "Necesitas 2 piedras Legendarias para registrar un éxito.";
+      if (!esExito && nLeg < 1) faltante = "No tienes piedras Legendarias que perder.";
+    } else if (tipoIntento === "claridad") {
+      if (esExito && nMit < 2) faltante = "Necesitas 2 Míticas para subir la Claridad.";
+      if (!esExito && nMit < 1) faltante = "No tienes Míticas que perder.";
+    } else if (tipoIntento === "alubia") {
+      if (nAlu < 1) faltante = "No tienes Alubias Verdes para consumir.";
+    }
+
+    if (faltante) {
+      alert("⚠️ Stock insuficiente: " + faltante);
+      return;
+    }
+  }
 
   let detalleCambio = "";
 
@@ -777,13 +908,11 @@ function ejecutarIntentoAlquimia(esExito) {
 
   if (esExito) {
     consecutiveFails = 0;
-    const statEl = document.getElementById("jitterStatus");
-    if (statEl) statEl.textContent = `✅ ¡ÉXITO!${detalleCambio} Pausa de Jitter activada:`;
+    setJitterStatus(`✅ ¡ÉXITO!${detalleCambio} Pausa de Jitter activada:`);
     iniciarJitterCountdown();
   } else {
     consecutiveFails++;
-    const statEl = document.getElementById("jitterStatus");
-    if (statEl) statEl.textContent = `❌ FALLO REGISTRADO${detalleCambio}.`;
+    setJitterStatus(`❌ FALLO REGISTRADO${detalleCambio}.`);
     if (consecutiveFails >= 2) {
       activarStopLoss();
       return;
@@ -803,7 +932,7 @@ function iniciarJitterCountdown() {
     actualizarUIJitter();
     if (jitterRemaining <= 0) {
       clearInterval(jitterTimerId);
-      document.getElementById("jitterStatus").textContent = "🟢 ¡LISTO PARA EL SIGUIENTE CLIC!";
+      setJitterStatus("🟢 ¡LISTO PARA EL SIGUIENTE CLIC!");
       document.getElementById("btnExito").disabled = false;
       document.getElementById("btnFallo").disabled = false;
     }
@@ -837,7 +966,7 @@ function activarStopLoss() {
       stopLossActive = false;
       consecutiveFails = 0;
       document.getElementById("stopLossBox").style.display = "none";
-      document.getElementById("jitterStatus").textContent = "🟢 Pausa cumplida. Estado reseteado.";
+      setJitterStatus("🟢 Pausa cumplida. Estado reseteado.");
       document.getElementById("btnExito").disabled = false;
       document.getElementById("btnFallo").disabled = false;
     }
@@ -1016,6 +1145,19 @@ function renderDashboardZoom() {
     `;
   } else if (activeZoom === "global") {
     const pct = Math.min(100, Math.round((STATE.corsTotal / 5040) * 100));
+    const etapaActual = Math.min(5, Math.ceil((STATE.semanaActual || 1) / 8));
+    const etapas = [
+      { n: 1, nombre: "Cimientos", rango: "Sem 1-8", icono: "✅" },
+      { n: 2, nombre: "Míticos Mates", rango: "Sem 9-16", icono: "🔄" },
+      { n: 3, nombre: "Pureza Clara & Límpida", rango: "Sem 17-24", icono: "🔒" },
+      { n: 4, nombre: "Colchón de Brillantes", rango: "Sem 25-32", icono: "🔒" },
+      { n: 5, nombre: "Excelente +6", rango: "Sem 33-36", icono: "🏆" }
+    ];
+    const filasEtapas = etapas.map(e => {
+      if (e.n < etapaActual) return `<div>✅ Etapa ${e.n}: ${e.nombre} (${e.rango})</div>`;
+      if (e.n === etapaActual) return `<div style="color:var(--gold);">🔄 Etapa ${e.n}: ${e.nombre} (${e.rango}) ➔ Estás Aquí</div>`;
+      return `<div>🔒 Etapa ${e.n}: ${e.nombre} (${e.rango})</div>`;
+    }).join("");
     cont.innerHTML = `
       <div class="card-title">
         <span>🌍 Progreso Total hacia Excelente +6</span>
@@ -1023,11 +1165,7 @@ function renderDashboardZoom() {
       </div>
       <div class="progress-track"><div class="progress-fill ruby" style="width: ${pct}%;"></div></div>
       <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-top: 8px;">
-        <div>✅ Etapa 1: Cimientos (Sem 1-8)</div>
-        <div style="color:var(--gold);">🔄 Etapa 2: Míticos Mates (Sem 9-16) ➔ Estás Aquí</div>
-        <div>🔒 Etapa 3: Pureza Clara & Límpida (Sem 17-24)</div>
-        <div>🔒 Etapa 4: Colchón de Brillantes (Sem 25-32)</div>
-        <div>🏆 Etapa 5: Excelente +6 (Sem 33-36)</div>
+        ${filasEtapas}
       </div>
     `;
   }
@@ -1041,8 +1179,8 @@ function renderGranjeros() {
     <div class="farmer-row">
       <div class="farmer-name">
         <span>${g.hechoHoy ? '✅' : '⏳'}</span>
-        <span>${g.nombre}</span>
-        ${g.hora ? `<span style="font-size: 0.75rem; color: var(--text-muted);">(${g.hora})</span>` : ''}
+        <span>${escapeHtml(g.nombre)}</span>
+        ${g.hora ? `<span style="font-size: 0.75rem; color: var(--text-muted);">(${escapeHtml(g.hora)})</span>` : ''}
       </div>
       <button class="btn-complete ${g.hechoHoy ? 'done' : ''}" onclick="toggleGranjero(${i})">
         ${g.hechoHoy ? 'Completado ✓' : 'Marcar 5 Cors'}
@@ -1052,17 +1190,24 @@ function renderGranjeros() {
 }
 
 function toggleGranjero(index) {
+  verificarCambioDia();
   const g = STATE.granjeros[index];
+  if (!g) return;
+
   g.hechoHoy = !g.hechoHoy;
+  const diaIdx = indiceDiaSemana();
+
   if (g.hechoHoy) {
     const d = new Date();
     g.hora = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
     STATE.corsSemanaActual += 5;
     STATE.corsTotal += 5;
+    STATE.semanaHistorial[diaIdx] = (STATE.semanaHistorial[diaIdx] || 0) + 5;
   } else {
     g.hora = "";
     STATE.corsSemanaActual = Math.max(0, STATE.corsSemanaActual - 5);
     STATE.corsTotal = Math.max(0, STATE.corsTotal - 5);
+    STATE.semanaHistorial[diaIdx] = Math.max(0, (STATE.semanaHistorial[diaIdx] || 0) - 5);
   }
   saveState();
 }
@@ -1119,9 +1264,9 @@ async function renderEventosRadar() {
   const proximos = filtrados.filter(ev => esEventoHoy(ev) && !estaActivo(ev, horaActual) && horaActual < ev.hora_inicio)
                             .sort((a,b) => a.hora_inicio.localeCompare(b.hora_inicio));
 
-  const badge = `<span style="font-size:0.7rem; background:rgba(212,160,23,0.15); border:1px solid var(--gold); color:var(--gold); padding:1px 6px; border-radius:10px; margin-left:6px;">${servidor}</span>`;
+  const badge = `<span style="font-size:0.7rem; background:rgba(212,160,23,0.15); border:1px solid var(--gold); color:var(--gold); padding:1px 6px; border-radius:10px; margin-left:6px;">${escapeHtml(servidor)}</span>`;
 
-  if (EVENTOS_API_ERROR) {
+  if (EVENTOS_API_ERROR && filtrados.length === 0) {
     el.innerHTML = `<div class="radar-header"><span>⚠️ SIN CONEXIÓN</span></div><div class="radar-content" style="font-size:0.82rem; color:var(--text-muted);">No se pudieron cargar los eventos en vivo.</div>`;
     return;
   }
@@ -1130,7 +1275,7 @@ async function renderEventosRadar() {
     const esAlq = esEventoAlquimia(activo.nombre_evento);
     const ico = activo.tipo_evento === "especial" ? "🗓️ ESPECIAL" : activo.tipo_evento === "grupo" ? "👥 GRUPO" : "⚡ ACTIVO AHORA";
     const alqBadge = esAlq ? `<span style="font-size:0.68rem; background:rgba(46,204,113,0.2); border:1px solid var(--green); color:var(--green); padding:1px 6px; border-radius:10px; margin-left:6px;">💎 EVENTO ALQUIMIA</span>` : "";
-    let tip = activo.descripcion || "";
+    let tip = escapeHtml(activo.descripcion || "");
     if (esAlq) {
       if (activo.nombre_evento.toLowerCase().includes("cor draconis")) {
         tip = "💡 <strong>¡Farmea Cors ahora!</strong> Pasa tus 4 granjeros para duplicar cors durante esta franja.";
@@ -1141,7 +1286,7 @@ async function renderEventosRadar() {
 
     el.innerHTML = `
       <div class="radar-header"><span>${ico} ${badge} ${alqBadge}</span><span>${activo.hora_inicio} – ${activo.hora_fin}</span></div>
-      <div class="radar-content">💎 ${activo.nombre_evento}</div>
+      <div class="radar-content">💎 ${escapeHtml(activo.nombre_evento)}</div>
       <div style="font-size:0.8rem; color:${esAlq ? 'var(--green)' : 'var(--text-muted)'}; margin-top:4px;">${tip}</div>`;
   } else if (proximos.length > 0) {
     const prox = proximos[0];
@@ -1149,11 +1294,11 @@ async function renderEventosRadar() {
     const alqBadge = esAlqProx ? `<span style="font-size:0.68rem; background:rgba(46,204,113,0.2); border:1px solid var(--green); color:var(--green); padding:1px 6px; border-radius:10px; margin-left:6px;">💎 ALQUIMIA</span>` : "";
     el.innerHTML = `
       <div class="radar-header"><span>⏰ PRÓXIMO HOY ${badge} ${alqBadge}</span><span>Inicia ${prox.hora_inicio}</span></div>
-      <div class="radar-content">${prox.nombre_evento}</div>
-      <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${prox.descripcion || ""}</div>
+      <div class="radar-content">${escapeHtml(prox.nombre_evento)}</div>
+      <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${escapeHtml(prox.descripcion || "")}</div>
       ${proximos.length > 1 ? `<div style="font-size:0.75rem; color:var(--text-dim); margin-top:6px;">+${proximos.length-1} más hoy</div>` : ""}`;
   } else {
-    el.innerHTML = `<div class="radar-header"><span>📅 RADAR ${badge}</span></div><div class="radar-content" style="font-size:0.85rem; color:var(--text-muted);">Sin eventos hoy para ${servidor}.</div>`;
+    el.innerHTML = `<div class="radar-header"><span>📅 RADAR ${badge}</span></div><div class="radar-content" style="font-size:0.85rem; color:var(--text-muted);">Sin eventos hoy para ${escapeHtml(servidor)}.</div>`;
   }
 }
 
@@ -1179,10 +1324,11 @@ async function renderVistaEventos() {
     filtrados = filtrados.filter(ev => esEventoAlquimia(ev.nombre_evento));
   }
 
-  if (EVENTOS_API_ERROR || filtrados.length === 0) {
-    cont.innerHTML = `<p style="color:var(--ruby); font-size:0.85rem; text-align:center; padding:20px 0;">
-      ⚠️ Sin eventos ${filtroEventosActual === 'alquimia' ? 'de Alquimia' : ''} encontrados para <strong>${servidor}</strong>.
-    </p>`;
+  if (filtrados.length === 0) {
+    const mensaje = EVENTOS_API_ERROR
+      ? "⚠️ Sin conexión y sin copia local de eventos guardada."
+      : `⚠️ Sin eventos ${filtroEventosActual === 'alquimia' ? 'de Alquimia' : ''} encontrados para <strong>${escapeHtml(servidor)}</strong>.`;
+    cont.innerHTML = `<p style="color:var(--ruby); font-size:0.85rem; text-align:center; padding:20px 0;">${mensaje}</p>`;
     return;
   }
 
@@ -1216,7 +1362,7 @@ async function renderVistaEventos() {
         const esAlq = esEventoAlquimia(ev.nombre_evento);
         return `<div style="display:flex;justify-content:space-between;align-items:center;background:${activo?'rgba(46,204,113,0.1)':'var(--bg-input)'};padding:6px 10px;border-radius:var(--radius-sm);margin-bottom:3px;border:1px solid ${activo?'var(--green)':esHoy?'rgba(212,160,23,0.2)':'var(--border-card)'};">
           <span style="font-size:0.82rem;font-weight:600;color:${activo?'var(--green)':'var(--text-main)'};">
-            ${activo?'🟢 ':''}${ev.nombre_evento}
+            ${activo?'🟢 ':''}${escapeHtml(ev.nombre_evento)}
             ${esAlq ? '<span style="font-size:0.65rem; background:rgba(46,204,113,0.15); color:var(--green); border:1px solid var(--green); padding:1px 4px; border-radius:4px; margin-left:4px;">💎 Alquimia</span>' : ''}
           </span>
           <span style="font-size:0.72rem;color:var(--gold);font-family:monospace;white-space:nowrap;margin-left:8px;">${ev.hora_inicio}–${ev.hora_fin}</span>
@@ -1258,10 +1404,10 @@ async function renderVistaEventos() {
         return `<div style="display:flex;justify-content:space-between;align-items:flex-start;background:${activo?'rgba(46,204,113,0.1)':esPasado?'rgba(255,255,255,0.02)':'var(--bg-input)'};padding:8px 10px;border-radius:var(--radius-sm);margin-bottom:4px;border:1px solid ${activo?'var(--green)':esHoy2?'rgba(212,160,23,0.3)':'var(--border-card)'};opacity:${esPasado?'0.45':'1'};">
           <div>
             <div style="font-size:0.82rem;font-weight:600;color:${activo?'var(--green)':esPasado?'var(--text-muted)':'var(--text-main)'};">
-              ${activo?'🟢 ':''}${ev.nombre_evento}
+              ${activo?'🟢 ':''}${escapeHtml(ev.nombre_evento)}
               ${esAlq ? '<span style="font-size:0.65rem; background:rgba(46,204,113,0.15); color:var(--green); border:1px solid var(--green); padding:1px 4px; border-radius:4px; margin-left:4px;">💎 Alquimia</span>' : ''}
             </div>
-            ${ev.descripcion ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${ev.descripcion}</div>` : ""}
+            ${ev.descripcion ? `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px;">${escapeHtml(ev.descripcion)}</div>` : ""}
           </div>
           <div style="text-align:right;flex-shrink:0;margin-left:10px;">
             <div style="font-size:0.72rem;color:var(--text-dim);">${dia} ${meses[mesActual].slice(0,3)}</div>
@@ -1270,7 +1416,7 @@ async function renderVistaEventos() {
         </div>`;
       }).join("")}
     </div>` :
-    `<p style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:10px 0;">Sin eventos ${filtroEventosActual === 'alquimia' ? 'de Alquimia' : ''} en ${meses[mesActual]} para <strong>${servidor}</strong>.</p>`;
+    `<p style="font-size:0.8rem;color:var(--text-muted);text-align:center;padding:10px 0;">Sin eventos ${filtroEventosActual === 'alquimia' ? 'de Alquimia' : ''} en ${meses[mesActual]} para <strong>${escapeHtml(servidor)}</strong>.</p>`;
 
   cont.innerHTML = htmlEstaticos + htmlMes;
 }
@@ -1757,11 +1903,13 @@ function importarDatosJSON(input) {
   reader.onload = function (e) {
     try {
       const data = JSON.parse(e.target.result);
-      if (data && data.corsTotal !== undefined) {
-        STATE = Object.assign({}, DEFAULT_STATE, data);
-        saveState();
-        alert("✅ Copia de seguridad restaurada con éxito.");
+      if (!data || typeof data !== "object" || Array.isArray(data) ||
+          (!("corsTotal" in data) && !("perfil" in data) && !("version" in data))) {
+        throw new Error("El archivo no parece un respaldo de NaayTracker.");
       }
+      STATE = mergeStateWithDefaults(data);
+      saveState();
+      alert("✅ Copia de seguridad restaurada con éxito.");
     } catch (err) {
       alert("❌ Error en el archivo JSON: " + err.message);
     }
@@ -1784,7 +1932,10 @@ function restaurarDesdeCodigoTexto() {
     try {
       const json = decodeURIComponent(escape(atob(code.trim())));
       const data = JSON.parse(json);
-      STATE = Object.assign({}, DEFAULT_STATE, data);
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        throw new Error("Código inválido.");
+      }
+      STATE = mergeStateWithDefaults(data);
       saveState();
       alert("✅ Datos restaurados con éxito desde el código.");
     } catch (e) {
@@ -1799,6 +1950,8 @@ function restablecerTodosLosDatos() {
 
   localStorage.removeItem("naaytracker_state");
   STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  STATE.ultimoDia = fechaLocalISO();
+  STATE.inicioSemana = inicioSemanaISO();
   saveState();
   renderAll();
   cerrarModal("modalAjustes");
@@ -1849,8 +2002,15 @@ function instalarPWA() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  verificarCambioDia();
   renderAll();
   renderSessionTimer();
+
+  // Mantener los contadores al día aunque la app quede abierta varios días
+  setInterval(verificarCambioDia, 60 * 1000);
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) verificarCambioDia();
+  });
 
   // Cerrar modales haciendo clic en el fondo oscuro
   document.querySelectorAll(".modal-overlay").forEach(overlay => {
