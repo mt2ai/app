@@ -1,11 +1,11 @@
 // Service Worker para NaayTracker (Offline-First Ultra Privado)
-const CACHE_NAME = 'naaytracker-v1';
+const CACHE_NAME = 'naaytracker-v2';
 const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './styles.css',
-  './app.js',
-  './manifest.json'
+  '/app/',
+  '/app/index.html',
+  '/app/styles.css',
+  '/app/app.js',
+  '/app/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
