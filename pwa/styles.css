@@ -2254,6 +2254,23 @@ body {
   line-height: 1.4;
 }
 
+.goal-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #20242d;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.goal-meta-row strong {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
 .current-goal-progress {
   display: flex;
   align-items: center;
@@ -2809,7 +2826,7 @@ textarea::placeholder {
 
 .sync-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
 

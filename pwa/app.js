@@ -188,6 +188,16 @@ function inicioSemanaJuegoISO(d = new Date()) {
   return inicioSemanaISO(fecha);
 }
 
+function numeroSeguro(valor, defecto = 0, min = -Infinity, max = Infinity) {
+  const n = typeof valor === "number" ? valor : parseFloat(valor);
+  if (!Number.isFinite(n)) return defecto;
+  return Math.min(max, Math.max(min, n));
+}
+
+function enteroSeguro(valor, defecto = 0, min = 0, max = Number.MAX_SAFE_INTEGER) {
+  return Math.floor(numeroSeguro(valor, defecto, min, max));
+}
+
 /**
  * Normaliza "H:MM" o "HH:MM" → "HH:MM" para comparación lexicográfica.
  */
@@ -345,25 +355,12 @@ const HITOS_PLAN_MAESTRO = [
   { id: "p23", etapa: 5, etapaNombre: "Etapa 5 (Sem 33-36)", texto: "Culminar la Meta de Equipo Principal con el poder del Rubí Excelente +6", completado: false, cat: "equipo", esHitoPlan: true }
 ];
 
-const OBJETIVOS_ALQUIMIA_CATALOGO = [
-  { id: "antiguas-10", titulo: "Acumular 10 Antiguas", tipo: "antiguas", meta: 10, descripcion: "Banco inicial para 5 intentos hacia Legendaria." },
-  { id: "antiguas-20", titulo: "Acumular 20 Antiguas", tipo: "antiguas", meta: 20, descripcion: "Segundo lote para una sesión de refinado más estable." },
-  { id: "antiguas-30", titulo: "Acumular 30 Antiguas", tipo: "antiguas", meta: 30, descripcion: "Lote óptimo para refinado masivo con margen de fallos." },
-  { id: "legendarias-4", titulo: "Reunir 4 Legendarias", tipo: "legendarias", meta: 4, descripcion: "Primer colchón para intentar Míticas sin quiebra." },
-  { id: "legendarias-8", titulo: "Reunir 8 Legendarias", tipo: "legendarias", meta: 8, descripcion: "Banco de 4 intentos hacia Mítica." },
-  { id: "legendarias-16", titulo: "Reunir 16 Legendarias", tipo: "legendarias", meta: 16, descripcion: "Reserva industrial para alimentar la pirámide de pureza." },
-  { id: "miticas-1", titulo: "Conseguir 1 Mítica", tipo: "miticas", meta: 1, descripcion: "Primer Rubí Mítico para equipar provisionalmente." },
-  { id: "miticas-4", titulo: "Colchón de 4 Míticas", tipo: "miticas", meta: 4, descripcion: "Mínimo seguro antes de intentar subir claridad." },
-  { id: "claridad-clara", titulo: "Alcanzar Claridad Clara", tipo: "claridad", meta: 1, descripcion: "Primer salto de pureza con Stop-Loss." },
-  { id: "claridad-limpida", titulo: "Alcanzar Claridad Límpida", tipo: "claridad", meta: 2, descripcion: "Pureza intermedia manteniendo una piedra de respaldo." },
-  { id: "claridad-brillante", titulo: "Alcanzar Claridad Brillante", tipo: "claridad", meta: 3, descripcion: "Salto crítico antes del asalto final." },
-  { id: "claridad-excelente", titulo: "Alcanzar Claridad Excelente", tipo: "claridad", meta: 4, descripcion: "Máxima pureza alcanzable en Metin2." },
-  { id: "nivel-4", titulo: "Subir la gema a +4", tipo: "nivel", meta: 4, descripcion: "Mejora de nivel con alubias verdes." },
-  { id: "nivel-6", titulo: "Subir la gema a +6", tipo: "nivel", meta: 6, descripcion: "Nivel máximo con reserva de alubias." },
-  { id: "personalizado", titulo: "Objetivo personalizado", tipo: "personalizado", meta: 1, descripcion: "Define tu propia meta de alquimia." }
-];
-
-const CLARIDAD_RANK = { mate: 0, claro: 1, limpido: 2, brillante: 3, excelente: 4 };
+const OBJETIVO_ALQUIMIA_DEFAULT = {
+  titulo: "Alquimia Excelente",
+  tipo: "excelente",
+  meta: 1,
+  descripcion: "Consigue una piedra dragón en calidad Excelente. El plan está pensado para una sola alquimia de máximo nivel."
+};
 
 const DEFAULT_STATE = {
   version: 6,
@@ -571,6 +568,9 @@ function mergeStateWithDefaults(parsed) {
       ? ultimaMs
       : Math.max(0, parseInt(g.ultimaSesionSeg, 10) || 0) * 1000;
     g.sesiones = Math.max(0, parseInt(g.sesiones, 10) || 0);
+    g.nombre = String(g.nombre || `Fragmentero ${g.id || ""}`).slice(0, 40);
+    g.hora = String(g.hora || "").slice(0, 10);
+    g.hechoHoy = !!g.hechoHoy;
     delete g.cronoInicio;
   });
   // Normalizar cronómetro general
@@ -594,6 +594,94 @@ function mergeStateWithDefaults(parsed) {
   const migracionReset = (parsed.version || 0) < 6;
   if (!merged.ultimoDia || migracionReset) merged.ultimoDia = fechaJuegoISO();
   if (!merged.inicioSemana || migracionReset) merged.inicioSemana = inicioSemanaJuegoISO();
+
+  // Sanitizar estado cargado o sincronizado (defensa contra datos manipulados)
+  merged.semanaActual = enteroSeguro(merged.semanaActual, 1, 1, 36);
+  merged.corsTotal = enteroSeguro(merged.corsTotal, 0, 0, 10000000);
+  merged.corsExtraEventos = enteroSeguro(merged.corsExtraEventos, 0, 0, 10000000);
+  merged.corsSemanaActual = enteroSeguro(merged.corsSemanaActual, 0, 0, 10000000);
+  merged.semanaHistorial = merged.semanaHistorial.map(v => enteroSeguro(v, 0, 0, 100000));
+
+  if (merged.perfil && typeof merged.perfil === "object") {
+    merged.perfil.nombre = String(merged.perfil.nombre || "Mi Cuenta").slice(0, 60);
+    merged.perfil.servidor = String(merged.perfil.servidor || "Ruby").slice(0, 40);
+  }
+
+  const gemasValidas = Object.keys(DEFAULT_STATE.ruedaDSS.slots);
+  if (!gemasValidas.includes(merged.ruedaDSS.gemaActiva)) {
+    merged.ruedaDSS.gemaActiva = "rubi";
+  }
+  const claridadesValidas = ["mate", "claro", "limpido", "brillante", "excelente", "ninguna"];
+  gemasValidas.forEach(k => {
+    const slot = merged.ruedaDSS.slots[k];
+    if (!slot || typeof slot !== "object" || Array.isArray(slot)) {
+      merged.ruedaDSS.slots[k] = JSON.parse(JSON.stringify(DEFAULT_STATE.ruedaDSS.slots[k]));
+      return;
+    }
+    slot.stockAntiguas = enteroSeguro(slot.stockAntiguas, 0, 0, 1000000);
+    slot.stockLegendarias = enteroSeguro(slot.stockLegendarias, 0, 0, 1000000);
+    slot.stockMiticas = enteroSeguro(slot.stockMiticas, 0, 0, 1000000);
+    slot.nivel = enteroSeguro(slot.nivel, 0, 0, 6);
+    if (!claridadesValidas.includes(slot.claridad)) slot.claridad = "mate";
+    if (!["en_progreso", "cola"].includes(slot.estado)) slot.estado = "cola";
+  });
+
+  Object.keys(DEFAULT_STATE.consumibles).forEach(k => {
+    merged.consumibles[k] = enteroSeguro(merged.consumibles[k], 0, 0, 1000000);
+  });
+
+  merged.finanzas.saldoWons = numeroSeguro(merged.finanzas.saldoWons, 0, 0, 1e12);
+  merged.finanzas.saldoYangKK = numeroSeguro(merged.finanzas.saldoYangKK, 0, 0, 1e12);
+  merged.finanzas.metaCostoWons = numeroSeguro(merged.finanzas.metaCostoWons, 10, 0.1, 1e9);
+  merged.finanzas.precioCompraRubiWons = numeroSeguro(merged.finanzas.precioCompraRubiWons, 4.5, 0, 1e9);
+  merged.finanzas.precioCompraRubiKK = numeroSeguro(merged.finanzas.precioCompraRubiKK, 0, 0, 1e9);
+  merged.finanzas.metaNombre = String(merged.finanzas.metaNombre || "Meta de Equipo Principal").slice(0, 80);
+
+  Object.keys(merged.finanzas.alquimiaSecundaria || {}).forEach(k => {
+    const item = merged.finanzas.alquimiaSecundaria[k];
+    if (!item || typeof item !== "object" || Array.isArray(item)) return;
+    item.stock = enteroSeguro(item.stock, 0, 0, 1000000);
+    item.ultimoPrecioWons = numeroSeguro(item.ultimoPrecioWons, 0, 0, 1e9);
+    item.ultimoPrecioKK = numeroSeguro(item.ultimoPrecioKK, 0, 0, 1e9);
+    item.nombre = String(item.nombre || k).slice(0, 60);
+  });
+
+  merged.objetivos = (Array.isArray(merged.objetivos) ? merged.objetivos : [])
+    .filter(o => o && typeof o === "object" && !Array.isArray(o))
+    .map((o, index) => {
+      const idNumerico = typeof o.id === "number" && Number.isFinite(o.id)
+        ? Math.max(0, Math.floor(o.id))
+        : null;
+      const idSeguro = idNumerico !== null
+        ? idNumerico
+        : (String(o.id ?? "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40) || `obj-${index}-${Date.now()}`);
+
+      return {
+        ...o,
+        id: idSeguro,
+        texto: String(o.texto ?? "").slice(0, 300),
+        etapa: enteroSeguro(o.etapa, 1, 1, 5),
+        cat: typeof o.cat === "string" ? o.cat.slice(0, 30) : "general",
+        completado: !!o.completado,
+        esHitoPlan: !!o.esHitoPlan
+      };
+    });
+
+  if (merged.objetivoAlquimia && merged.objetivoAlquimia.actual) {
+    const actual = merged.objetivoAlquimia.actual;
+    if (!actual || typeof actual !== "object" || Array.isArray(actual)) {
+      merged.objetivoAlquimia.actual = null;
+    } else {
+      // El plan actual es una única alquimia Excelente; se migran metas antiguas.
+      actual.tipo = OBJETIVO_ALQUIMIA_DEFAULT.tipo;
+      actual.titulo = OBJETIVO_ALQUIMIA_DEFAULT.titulo;
+      actual.descripcion = OBJETIVO_ALQUIMIA_DEFAULT.descripcion;
+      actual.meta = 1;
+      actual.creadoEn = String(actual.creadoEn || "").slice(0, 20);
+      delete actual.gema;
+      delete actual.catalogId;
+    }
+  }
 
   return merged;
 }
@@ -846,18 +934,25 @@ function objetivoAlquimiaActual() {
   return STATE.objetivoAlquimia ? STATE.objetivoAlquimia.actual : null;
 }
 
-function catalogoObjetivo(id) {
-  return OBJETIVOS_ALQUIMIA_CATALOGO.find(o => o.id === id) || null;
+function crearObjetivoAlquimiaExcelente() {
+  return {
+    id: `obj-${Date.now()}`,
+    tipo: OBJETIVO_ALQUIMIA_DEFAULT.tipo,
+    titulo: OBJETIVO_ALQUIMIA_DEFAULT.titulo,
+    descripcion: OBJETIVO_ALQUIMIA_DEFAULT.descripcion,
+    meta: 1,
+    creadoEn: fechaLocalISO()
+  };
 }
 
-function calcularProgresoObjetivo(objetivo) {
-  const slot = (STATE.ruedaDSS && STATE.ruedaDSS.slots && STATE.ruedaDSS.slots[objetivo.gema]) || {};
-  if (objetivo.tipo === "antiguas") return { valor: slot.stockAntiguas || 0, meta: objetivo.meta || 10 };
-  if (objetivo.tipo === "legendarias") return { valor: slot.stockLegendarias || 0, meta: objetivo.meta || 4 };
-  if (objetivo.tipo === "miticas") return { valor: slot.stockMiticas || 0, meta: objetivo.meta || 1 };
-  if (objetivo.tipo === "claridad") return { valor: CLARIDAD_RANK[slot.claridad || "mate"] || 0, meta: objetivo.meta || 1 };
-  if (objetivo.tipo === "nivel") return { valor: slot.nivel || 0, meta: objetivo.meta || 6 };
-  return null;
+function iniciarObjetivoAlquimia() {
+  if (!STATE.objetivoAlquimia) {
+    STATE.objetivoAlquimia = { actual: null, historial: [], inicializado: false };
+  }
+  if (!STATE.objetivoAlquimia.actual) {
+    STATE.objetivoAlquimia.actual = crearObjetivoAlquimiaExcelente();
+    saveState();
+  }
 }
 
 function renderObjetivoAlquimia() {
@@ -868,161 +963,54 @@ function renderObjetivoAlquimia() {
   const actual = oa.actual;
 
   if (!actual) {
-    const historial = oa.historial || [];
     cont.innerHTML = `
       <div class="current-goal-card empty">
         <div class="current-goal-head">
           <span class="current-goal-kicker">Objetivo de alquimia</span>
           <span class="goal-status muted">Sin definir</span>
         </div>
-        <p class="current-goal-desc">Define qué quieres conseguir con tu alquimia. Al completarlo podrás pasar al siguiente paso, continuar o cambiar de rumbo.</p>
-        <button class="btn-primary goal-define-btn" onclick="abrirModalObjetivoAlquimia()">${svgIcon("target", "btn-svg")} Definir objetivo</button>
-        ${historial.length ? `<div class="goal-last">Último completado: ${escapeHtml(historial[0].titulo || "")}</div>` : ""}
+        <p class="current-goal-desc">El plan es conseguir una sola alquimia en calidad Excelente.</p>
+        <button class="btn-primary goal-define-btn" onclick="iniciarObjetivoAlquimia()">${svgIcon("target", "btn-svg")} Comenzar Alquimia Excelente</button>
       </div>
     `;
     return;
   }
 
-  const gema = GEMA_INFO_MAP[actual.gema] || GEMA_INFO_MAP.rubi;
-  const progreso = calcularProgresoObjetivo(actual);
-  const porcentaje = progreso ? Math.min(100, Math.round((progreso.valor / Math.max(1, progreso.meta)) * 100)) : 0;
-  const alcanzado = progreso ? progreso.valor >= progreso.meta : false;
-
-  const barraProgreso = progreso
-    ? `<div class="current-goal-progress">
-        <div class="progress-track"><div class="progress-fill ${alcanzado ? "green" : ""}" style="width:${porcentaje}%"></div></div>
-        <span>${Math.min(progreso.valor, progreso.meta)} / ${progreso.meta}</span>
-      </div>`
-    : `<div class="current-goal-manual">Objetivo personalizado · progreso manual</div>`;
-
+  const historial = oa.historial || [];
   cont.innerHTML = `
     <div class="current-goal-card">
       <div class="current-goal-head">
         <span class="current-goal-kicker">Objetivo de alquimia</span>
-        <span class="goal-status ${alcanzado ? "done" : ""}">${alcanzado ? "Meta alcanzada" : "En curso"}</span>
+        <span class="goal-status">En curso</span>
       </div>
       <div class="current-goal-main">
-        <span class="current-goal-gem">${iconoGema(actual.gema)}</span>
+        <span class="current-goal-gem">${svgIcon("gem", "gem-svg")}</span>
         <div>
-          <div class="current-goal-title">${gema.nombre} · ${escapeHtml(actual.titulo)}</div>
+          <div class="current-goal-title">${escapeHtml(actual.titulo)}</div>
           <div class="current-goal-desc">${escapeHtml(actual.descripcion || "")}</div>
         </div>
       </div>
-      ${barraProgreso}
+      <div class="goal-meta-row"><span>Meta</span><strong>1 alquimia Excelente</strong></div>
       <div class="current-goal-actions">
         <button class="btn-complete done" onclick="marcarObjetivoCompletado()">${svgIcon("check", "btn-svg")} Completado</button>
-        <button class="btn-complete" onclick="abrirModalObjetivoAlquimia()">${svgIcon("edit", "btn-svg")} Cambiar</button>
+        <button class="btn-complete" onclick="reiniciarObjetivoAlquimia()">${svgIcon("refresh", "btn-svg")} Reiniciar</button>
       </div>
-      ${oa.historial && oa.historial.length ? `<div class="goal-last">Completados: ${oa.historial.length}${oa.historial[0] ? ` · Último: ${escapeHtml(oa.historial[0].titulo || "")}` : ""}</div>` : ""}
+      ${historial.length ? `<div class="goal-last">Completados: ${historial.length}${historial[0] ? ` · Último: ${escapeHtml(historial[0].titulo || "")}` : ""}</div>` : ""}
     </div>
   `;
 }
 
-function abrirModalObjetivoAlquimia() {
-  if (!STATE.objetivoAlquimia) {
-    STATE.objetivoAlquimia = { actual: null, historial: [], inicializado: false };
-  }
+function marcarObjetivoCompletado() {
   const actual = objetivoAlquimiaActual();
-  const gemSel = document.getElementById("objGema");
-  const tipoSel = document.getElementById("objTipo");
-  if (!gemSel || !tipoSel) return;
+  if (!actual) return;
 
-  gemSel.innerHTML = Object.keys(GEMA_INFO_MAP)
-    .map(k => `<option value="${k}">${GEMA_INFO_MAP[k].nombre}</option>`)
-    .join("");
-  tipoSel.innerHTML = OBJETIVOS_ALQUIMIA_CATALOGO
-    .map(o => `<option value="${o.id}">${o.titulo}</option>`)
-    .join("");
+  const texto = document.getElementById("objetivoCompletadoTexto");
+  const sig = document.getElementById("objetivoCompletadoSiguiente");
+  if (texto) texto.textContent = actual.titulo;
+  if (sig) sig.textContent = "Puedes continuar con esta alquimia o comenzar una nueva desde cero.";
 
-  gemSel.value = actual && GEMA_INFO_MAP[actual.gema] ? actual.gema : (STATE.ruedaDSS.gemaActiva || "rubi");
-  tipoSel.value = actual && catalogoObjetivo(actual.catalogId) ? actual.catalogId : "antiguas-10";
-
-  actualizarFormularioObjetivo();
-
-  const metaInput = document.getElementById("objMeta");
-  const tituloInput = document.getElementById("objTitulo");
-  if (actual) {
-    if (metaInput) metaInput.value = actual.meta || 1;
-    if (tituloInput) tituloInput.value = actual.catalogId === "personalizado" ? actual.titulo : "";
-  }
-
-  STATE.objetivoAlquimia.inicializado = true;
-  const modal = document.getElementById("modalObjetivoAlquimia");
+  const modal = document.getElementById("modalObjetivoCompletado");
   if (modal) modal.classList.add("active");
-}
-
-function actualizarFormularioObjetivo() {
-  const tipoSel = document.getElementById("objTipo");
-  if (!tipoSel) return;
-  const def = catalogoObjetivo(tipoSel.value);
-  const esPersonalizado = !def || def.id === "personalizado";
-
-  const tituloGroup = document.getElementById("objTituloGroup");
-  if (tituloGroup) tituloGroup.style.display = esPersonalizado ? "block" : "none";
-
-  const metaInput = document.getElementById("objMeta");
-  if (metaInput && def && !esPersonalizado) metaInput.value = def.meta;
-  if (metaInput && esPersonalizado) metaInput.value = metaInput.value || 1;
-}
-
-function guardarObjetivoAlquimia() {
-  const gemSel = document.getElementById("objGema");
-  const tipoSel = document.getElementById("objTipo");
-  const metaInput = document.getElementById("objMeta");
-  const tituloInput = document.getElementById("objTitulo");
-  if (!gemSel || !tipoSel) return;
-
-  const def = catalogoObjetivo(tipoSel.value);
-  if (!def) return;
-
-  const esPersonalizado = def.id === "personalizado";
-  let titulo = def.titulo;
-  if (esPersonalizado) {
-    titulo = (tituloInput && tituloInput.value.trim()) || "";
-    if (!titulo) {
-      alert("Escribe un nombre para tu objetivo personalizado.");
-      return;
-    }
-  }
-
-  const meta = Math.max(1, parseInt(metaInput && metaInput.value, 10) || 1);
-  const gema = gemSel.value;
-
-  STATE.objetivoAlquimia.actual = {
-    id: `obj-${Date.now()}`,
-    catalogId: def.id,
-    gema,
-    tipo: def.tipo,
-    titulo,
-    descripcion: esPersonalizado ? "Meta definida por ti." : def.descripcion,
-    meta,
-    creadoEn: fechaLocalISO()
-  };
-  STATE.objetivoAlquimia.inicializado = true;
-
-  cerrarModal("modalObjetivoAlquimia");
-  switchFinanzasTab("plan");
-  saveState();
-}
-
-function siguienteObjetivoSugerido(actual) {
-  const base = OBJETIVOS_ALQUIMIA_CATALOGO.filter(o => o.id !== "personalizado");
-  const idx = base.findIndex(o => o.id === actual.catalogId);
-  if (idx >= 0 && idx < base.length - 1) return base[idx + 1];
-  return null;
-}
-
-function construirObjetivoDesdeCatalogo(def, gema) {
-  return {
-    id: `obj-${Date.now()}`,
-    catalogId: def.id,
-    gema,
-    tipo: def.tipo,
-    titulo: def.titulo,
-    descripcion: def.descripcion,
-    meta: def.meta,
-    creadoEn: fechaLocalISO()
-  };
 }
 
 function archivarObjetivoActual() {
@@ -1034,60 +1022,24 @@ function archivarObjetivoActual() {
   STATE.objetivoAlquimia.actual = null;
 }
 
-function marcarObjetivoCompletado() {
-  const actual = objetivoAlquimiaActual();
-  if (!actual) return;
-
-  const gema = GEMA_INFO_MAP[actual.gema] || GEMA_INFO_MAP.rubi;
-  const siguiente = siguienteObjetivoSugerido(actual);
-  const texto = document.getElementById("objetivoCompletadoTexto");
-  const sig = document.getElementById("objetivoCompletadoSiguiente");
-
-  if (texto) texto.textContent = `${gema.nombre} · ${actual.titulo}`;
-  if (sig) {
-    sig.textContent = siguiente
-      ? `Siguiente sugerido: ${siguiente.titulo} (${gema.nombre})`
-      : "No hay un siguiente paso predefinido.";
-  }
-
-  const modal = document.getElementById("modalObjetivoCompletado");
-  if (modal) modal.classList.add("active");
+function reiniciarObjetivoAlquimia() {
+  if (!confirm("¿Reiniciar el objetivo actual? Se empezará de nuevo con Alquimia Excelente.")) return;
+  STATE.objetivoAlquimia.actual = crearObjetivoAlquimiaExcelente();
+  switchFinanzasTab("plan");
+  saveState();
 }
 
 function completarObjetivo(accion) {
-  const actual = objetivoAlquimiaActual();
   cerrarModal("modalObjetivoCompletado");
-  if (!actual) return;
-
-  // Continuar: mantiene el objetivo activo para seguir acumulando
+  if (!objetivoAlquimiaActual()) return;
   if (accion === "continuar") return;
 
-  const siguiente = accion === "siguiente" ? siguienteObjetivoSugerido(actual) : null;
   archivarObjetivoActual();
-
-  if (accion === "siguiente" && siguiente) {
-    STATE.objetivoAlquimia.actual = construirObjetivoDesdeCatalogo(siguiente, actual.gema);
-    switchFinanzasTab("plan");
-    saveState();
-    return;
+  if (accion === "nueva") {
+    STATE.objetivoAlquimia.actual = crearObjetivoAlquimiaExcelente();
   }
-
   switchFinanzasTab("plan");
   saveState();
-  setTimeout(() => abrirModalObjetivoAlquimia(), 180);
-}
-
-function iniciarObjetivoAlquimia() {
-  if (!STATE.objetivoAlquimia) {
-    STATE.objetivoAlquimia = { actual: null, historial: [], inicializado: false };
-  }
-  if (STATE.objetivoAlquimia.actual || STATE.objetivoAlquimia.inicializado) return;
-
-  STATE.objetivoAlquimia.inicializado = true;
-  saveState();
-  setTimeout(() => {
-    if (!STATE.objetivoAlquimia.actual) abrirModalObjetivoAlquimia();
-  }, 500);
 }
 
 function renderObjetivos() {
@@ -1848,7 +1800,7 @@ function renderDashboardZoom() {
       <div class="progress-track"><div class="progress-fill ${pctMes >= 90 ? 'green' : ''}" style="width: ${pctMes}%;"></div></div>
       <div class="info-box">
         <strong>${svgIcon("award", "obj-icon")} Hito Mes ${mesNum}</strong>
-        <p>6-8 Míticos Mates y comprar ${STATE.finanzas.metaNombre}.</p>
+        <p>6-8 Míticos Mates y comprar ${escapeHtml(STATE.finanzas.metaNombre)}.</p>
         <p class="info-box-note">Total global acumulado: <strong>${corsMesTotal} / 5040 Cors</strong></p>
       </div>
     `;
@@ -2224,7 +2176,7 @@ async function renderEventosRadar() {
     }
 
     el.innerHTML = `
-      <div class="radar-header"><span>${ico} ${badge} ${alqBadge}</span><span>${activo.hora_inicio} – ${activo.hora_fin}</span></div>
+      <div class="radar-header"><span>${ico} ${badge} ${alqBadge}</span><span>${escapeHtml(activo.hora_inicio)} – ${escapeHtml(activo.hora_fin)}</span></div>
       <div class="radar-content">${escapeHtml(activo.nombre_evento)}</div>
       <div style="font-size:0.8rem; color:${esAlq ? 'var(--green)' : 'var(--text-muted)'}; margin-top:4px;">${tip}</div>`;
   } else if (proximos.length > 0) {
@@ -2232,7 +2184,7 @@ async function renderEventosRadar() {
     const esAlqProx = esEventoAlquimia(prox.nombre_evento);
     const alqBadge = esAlqProx ? '<span class="event-tag">Alquimia</span>' : "";
     el.innerHTML = `
-      <div class="radar-header"><span>${svgIcon("clock", "obj-icon")} Próximo hoy ${badge} ${alqBadge}</span><span>Inicia ${prox.hora_inicio}</span></div>
+      <div class="radar-header"><span>${svgIcon("clock", "obj-icon")} Próximo hoy ${badge} ${alqBadge}</span><span>Inicia ${escapeHtml(prox.hora_inicio)}</span></div>
       <div class="radar-content">${escapeHtml(prox.nombre_evento)}</div>
       <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">${escapeHtml(prox.descripcion || "")}</div>
       ${proximos.length > 1 ? `<div style="font-size:0.75rem; color:var(--text-dim); margin-top:6px;">+${proximos.length-1} más hoy</div>` : ""}`;
@@ -2309,7 +2261,7 @@ async function renderVistaEventos() {
             </div>
           </div>
           <div class="event-meta">
-            <span class="event-time">${ev.hora_inicio}–${ev.hora_fin}</span>
+            <span class="event-time">${escapeHtml(ev.hora_inicio)}–${escapeHtml(ev.hora_fin)}</span>
             <button class="btn-notif ${notifActiva ? 'active' : ''}" data-notif-key="${escapeHtml(claveNotif)}" data-notif-nombre="${escapeHtml(ev.nombre_evento)}" title="${notifActiva ? 'Desactivar aviso' : 'Activar aviso'}" aria-label="${notifActiva ? 'Desactivar aviso' : 'Activar aviso'}">${iconoCampana(notifActiva)}</button>
           </div>
         </div>`;
@@ -2355,7 +2307,7 @@ async function renderVistaEventos() {
           </div>
           <div class="event-meta event-meta-col">
             <div class="event-date">${dia} ${meses[mesActual].slice(0,3)}</div>
-            <div class="event-time">${ev.hora_inicio}${ev.hora_fin ? '–' + ev.hora_fin : ''}</div>
+            <div class="event-time">${escapeHtml(ev.hora_inicio)}${ev.hora_fin ? '–' + escapeHtml(ev.hora_fin) : ''}</div>
             <button class="btn-notif ${notifActiva ? 'active' : ''}" data-notif-key="${escapeHtml(claveNotif)}" data-notif-nombre="${escapeHtml(ev.nombre_evento)}" title="${notifActiva ? 'Desactivar aviso' : 'Activar aviso'}" aria-label="${notifActiva ? 'Desactivar aviso' : 'Activar aviso'}">${iconoCampana(notifActiva)}</button>
           </div>
         </div>`;
@@ -2567,7 +2519,7 @@ function renderFinanzas() {
 
       return `
         <tr>
-          <td><strong>${item.nombre}</strong></td>
+          <td><strong>${escapeHtml(item.nombre)}</strong></td>
           <td>
             <div style="display:inline-flex; align-items:center; gap:6px;">
               <button class="btn-counter" onclick="cambiarStockAlquimiaSec('${k}', -1)">-</button>
@@ -2690,7 +2642,7 @@ function renderCalculadoraLuzVerde() {
   } else if (tipo === "legendarias") {
     // Al acercarse a Mítico la tasa base cae del 64% al ~45-50%
     const stockLeg = gemaData.stockLegendarias || 0;
-    stockLabel = `Stock de ${gemaKey.toUpperCase()} Legendario: ${stockLeg} piedras`;
+    stockLabel = `Stock de ${escapeHtml(gemaKey.toUpperCase())} Legendario: ${stockLeg} piedras`;
     if (stockLeg === 0) {
       semColor = "red";
       prob = "Sin stock";
@@ -2722,7 +2674,7 @@ function renderCalculadoraLuzVerde() {
     // Para subir claridad de forma segura y tener luz verde se necesitan AL MENOS 4 MÍTICAS.
     const stockMit = gemaData.stockMiticas || 0;
     const clarActual = gemaData.claridad || "mate";
-    stockLabel = `Stock de ${gemaKey.toUpperCase()} Mítico: ${stockMit} piedras | Claridad Actual: ${clarActual.toUpperCase()}`;
+    stockLabel = `Stock de ${escapeHtml(gemaKey.toUpperCase())} Mítico: ${stockMit} piedras | Claridad Actual: ${escapeHtml(clarActual.toUpperCase())}`;
 
     let siguienteClaridad = "Claro";
     let tasaPaso = "~50%";
@@ -2763,7 +2715,7 @@ function renderCalculadoraLuzVerde() {
       prob = `${tasaPaso} (2 intentos)`;
       dictamen = clarActual === "brillante"
         ? `🟡 Salto crítico a Excelente (${tasaPaso}): Tienes ${stockMit} Míticas (2 intentos). Por el alto fallo (~65%), se recomienda tener 6+ piedras o aplicar Stop-Loss estricto.`
-        : `🟢 ¡Luz Verde para Claridad (${clarActual.toUpperCase()} ➔ ${siguienteClaridad.toUpperCase()})! Tienes colchón de ${stockMit} Míticas (2 intentos). Si falla el primero, te quedarán piedras para reintentar. [${piramideCosto}]`;
+        : `🟢 ¡Luz Verde para Claridad (${escapeHtml(clarActual.toUpperCase())} ➔ ${siguienteClaridad.toUpperCase()})! Tienes colchón de ${stockMit} Míticas (2 intentos). Si falla el primero, te quedarán piedras para reintentar. [${piramideCosto}]`;
     } else {
       semColor = "green";
       prob = `${tasaPaso} (Colchón Óptimo 3+ intentos)`;
@@ -2772,7 +2724,7 @@ function renderCalculadoraLuzVerde() {
   } else {
     // Tipo: antiguas (Fusión Antiguas ➔ Legendaria)
     const stockAnt = gemaData.stockAntiguas || 0;
-    stockLabel = `Stock de ${gemaKey.toUpperCase()} Antiguo: ${stockAnt} piedras`;
+    stockLabel = `Stock de ${escapeHtml(gemaKey.toUpperCase())} Antiguo: ${stockAnt} piedras`;
 
     if (stockAnt === 0) {
       semColor = "red";

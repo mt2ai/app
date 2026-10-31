@@ -527,7 +527,8 @@
           <input type="text" id="syncCode" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Código de 12 caracteres">
         </div>
         <div class="sync-actions">
-          <button class="btn-complete" onclick="generarCodigoSync()">Generar código</button>
+          <button class="btn-complete" onclick="generarCodigoSync()">Generar</button>
+          <button class="btn-complete" onclick="copiarCodigoSync()"><span data-icon="copy"></span> Copiar</button>
           <button class="btn-primary" onclick="conectarSync()">Conectar</button>
         </div>
         <div id="syncStatus" class="sync-status">Sin conectar.</div>
@@ -601,40 +602,6 @@
     </div>
   </div>
 
-  <!-- MODAL: DEFINIR OBJETIVO DE ALQUIMIA -->
-  <div id="modalObjetivoAlquimia" class="modal-overlay">
-    <div class="modal-card goal-modal">
-      <div class="modal-header">
-        <h3>Objetivo de alquimia</h3>
-        <button class="modal-close" onclick="cerrarModal('modalObjetivoAlquimia')" aria-label="Cerrar"><span data-icon="x"></span></button>
-      </div>
-
-      <div class="form-group">
-        <label for="objGema">Gema</label>
-        <select id="objGema"></select>
-      </div>
-
-      <div class="form-group">
-        <label for="objTipo">Tipo de objetivo</label>
-        <select id="objTipo" onchange="actualizarFormularioObjetivo()"></select>
-      </div>
-
-      <div class="form-group" id="objTituloGroup" style="display: none;">
-        <label for="objTitulo">Nombre personalizado</label>
-        <input type="text" id="objTitulo" placeholder="Ej: Conseguir Rubí Mítico +6">
-      </div>
-
-      <div class="form-group">
-        <label for="objMeta">Meta (cantidad o nivel)</label>
-        <input type="number" id="objMeta" min="1" step="1" value="10">
-      </div>
-
-      <button class="btn-primary" onclick="guardarObjetivoAlquimia()">
-        <span data-icon="save"></span> Guardar objetivo
-      </button>
-    </div>
-  </div>
-
   <!-- MODAL: OBJETIVO COMPLETADO -->
   <div id="modalObjetivoCompletado" class="modal-overlay">
     <div class="modal-card goal-complete-modal">
@@ -650,14 +617,11 @@
       </div>
 
       <div class="goal-complete-actions">
-        <button class="btn-primary" onclick="completarObjetivo('siguiente')">
-          <span data-icon="chevronRight"></span> Siguiente objetivo
+        <button class="btn-primary" onclick="completarObjetivo('nueva')">
+          <span data-icon="refresh"></span> Comenzar nueva alquimia
         </button>
         <button class="btn-complete" onclick="completarObjetivo('continuar')">
           <span data-icon="play"></span> Continuar con este objetivo
-        </button>
-        <button class="btn-complete" onclick="completarObjetivo('cambiar')">
-          <span data-icon="edit"></span> Elegir otro objetivo
         </button>
       </div>
     </div>

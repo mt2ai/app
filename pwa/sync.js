@@ -56,6 +56,36 @@ function generarCodigoSync() {
   renderSyncUI("Código generado. Guárdalo y pulsa Conectar.");
 }
 
+async function copiarCodigoSync() {
+  const input = document.getElementById("syncCode");
+  const codigo = normalizarCodigoSync((input && input.value) || syncMeta.code);
+
+  if (!codigo) {
+    alert("Genera o escribe un código primero.");
+    return;
+  }
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(codigo);
+    } else {
+      throw new Error("Clipboard API no disponible");
+    }
+    renderSyncUI("Código copiado al portapapeles.");
+  } catch (e) {
+    if (input) {
+      input.focus();
+      input.select();
+      try {
+        document.execCommand("copy");
+        renderSyncUI("Código copiado al portapapeles.");
+        return;
+      } catch (err) {}
+    }
+    prompt("Copia tu código de sincronización:", codigo);
+  }
+}
+
 async function syncRpc(nombre, body) {
   if (!syncConfigurado()) throw new Error("Supabase no está configurado.");
   const cfg = window.NAAY_SUPABASE;
@@ -250,6 +280,8 @@ function desconectarSync() {
   if (!confirm("¿Desconectar la sincronización de este dispositivo? Los datos locales no se borrarán.")) return;
   syncMeta = { code: "", lastRemoteUpdatedAt: "", lastSyncAt: 0, dirty: false };
   guardarSyncMeta();
+  const input = document.getElementById("syncCode");
+  if (input) input.value = "";
   syncEstado = "idle";
   syncUltimoError = "";
   renderSyncUI("Sincronización desconectada.");
@@ -267,8 +299,8 @@ function renderSyncUI(mensajeExtra) {
     return;
   }
 
-  if (input && document.activeElement !== input) {
-    input.value = syncMeta.code || "";
+  if (input && syncMeta.code && !input.value) {
+    input.value = syncMeta.code;
   }
   if (disconnect) disconnect.style.display = syncMeta.code ? "inline-block" : "none";
 

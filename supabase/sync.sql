@@ -44,8 +44,16 @@ declare
   v_code text := upper(regexp_replace(coalesce(p_code, ''), '[^A-Za-z0-9]', '', 'g'));
   v_updated timestamptz;
 begin
-  if length(v_code) < 10 then
+  if v_code !~ '^[A-Z0-9]{10,12}$' then
     raise exception 'Código de sincronización inválido';
+  end if;
+
+  if jsonb_typeof(p_state) <> 'object' then
+    raise exception 'Estado inválido';
+  end if;
+
+  if octet_length(p_state::text) > 262144 then
+    raise exception 'El estado supera el tamaño máximo permitido';
   end if;
 
   insert into public.sync_states (code_hash, state, updated_at)
