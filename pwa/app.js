@@ -693,6 +693,8 @@ function mergeStateWithDefaults(parsed) {
       };
     });
 
+  normalizarProgresoPlanObjetivos(merged.objetivos);
+
   if (merged.objetivoAlquimia && merged.objetivoAlquimia.actual) {
     const actual = merged.objetivoAlquimia.actual;
     if (!actual || typeof actual !== "object" || Array.isArray(actual)) {
@@ -931,29 +933,80 @@ function renderListaObjetivosHtml(lista, mensajeVacio) {
     return `<p style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:12px 0;">${mensajeVacio}</p>`;
   }
 
+  const activo = obtenerHitoActivoPlan();
+  const activoId = activo ? activo.id : null;
+
   return lista.map(o => {
     const c = CAT_COLORS_OBJETIVOS[o.cat] || CAT_COLORS_OBJETIVOS.general;
+    const esActivo = o.esHitoPlan && o.id === activoId && !o.completado;
+    const bloqueado = o.esHitoPlan && !o.completado && !esActivo;
+    const deshabilitado = o.esHitoPlan && (o.completado || bloqueado);
+
     const badgeEtapa = o.esHitoPlan
       ? `<span class="objective-tag plan">E${o.etapa || 1}</span>`
       : `<span class="objective-tag custom">Personal</span>`;
+    const estadoBadge = o.esHitoPlan
+      ? (o.completado ? "" : (esActivo
+        ? `<span class="objective-tag active">Ahora</span>`
+        : `<span class="objective-tag locked">Bloqueado</span>`))
+      : "";
 
     const btnDel = o.esHitoPlan
       ? ""
       : `<button class="objective-delete" onclick="eliminarObjetivo('${escapeHtml(o.id)}')" title="Eliminar meta personalizada" aria-label="Eliminar meta">×</button>`;
 
+    const clases = [o.completado ? "done" : "", esActivo ? "current" : "", bloqueado ? "locked" : ""].filter(Boolean).join(" ");
+
     return `
-      <div class="objective-row ${o.completado ? "done" : ""}">
+      <div class="objective-row ${clases}" ${bloqueado ? 'title="Completa el objetivo anterior para desbloquearlo"' : ""}>
         <label class="objective-main">
-          <input type="checkbox" class="objective-check" ${o.completado ? 'checked' : ''} onchange="toggleObjetivo('${escapeHtml(o.id)}')">
+          <input type="checkbox" class="objective-check" ${o.completado ? 'checked' : ''} ${deshabilitado ? 'disabled' : ''} onchange="toggleObjetivo('${escapeHtml(o.id)}')">
           <span class="objective-text">${svgIcon(c.icon, "obj-icon")} ${escapeHtml(o.texto)}</span>
         </label>
         <div class="objective-side">
           ${badgeEtapa}
+          ${estadoBadge}
           ${btnDel}
         </div>
       </div>
     `;
   }).join('');
+}
+
+function normalizarProgresoPlanObjetivos(objetivos) {
+  let bloqueado = false;
+  HITOS_PLAN_MAESTRO.forEach(hito => {
+    const objetivo = objetivos.find(o => o.id === hito.id);
+    if (!objetivo) return;
+    if (bloqueado) {
+      objetivo.completado = false;
+    } else if (!objetivo.completado) {
+      bloqueado = true;
+    }
+  });
+}
+
+function obtenerHitosPlanSecuenciales() {
+  const objetivos = STATE.objetivos || [];
+  return HITOS_PLAN_MAESTRO
+    .map(hito => objetivos.find(o => o.id === hito.id))
+    .filter(Boolean);
+}
+
+function obtenerHitoActivoPlan() {
+  return obtenerHitosPlanSecuenciales().find(o => !o.completado) || null;
+}
+
+function planMaestroCompletado() {
+  const hitos = obtenerHitosPlanSecuenciales();
+  return hitos.length > 0 && hitos.every(o => o.completado);
+}
+
+function reiniciarProgresoPlan() {
+  HITOS_PLAN_MAESTRO.forEach(hito => {
+    const objetivo = (STATE.objetivos || []).find(o => o.id === hito.id);
+    if (objetivo) objetivo.completado = false;
+  });
 }
 
 function objetivoAlquimiaActual() {
@@ -1003,11 +1056,16 @@ function renderObjetivoAlquimia() {
   }
 
   const historial = oa.historial || [];
+  const hitosPlan = obtenerHitosPlanSecuenciales();
+  const hechosPlan = hitosPlan.filter(o => o.completado).length;
+  const totalPlan = hitosPlan.length;
+  const planCompleto = planMaestroCompletado();
+
   cont.innerHTML = `
     <div class="current-goal-card">
       <div class="current-goal-head">
         <span class="current-goal-kicker">Objetivo de alquimia</span>
-        <span class="goal-status">En curso</span>
+        <span class="goal-status ${planCompleto ? "done" : ""}">${planCompleto ? "Listo para completar" : "En curso"}</span>
       </div>
       <div class="current-goal-main">
         <span class="current-goal-gem">${svgIcon("gem", "gem-svg")}</span>
@@ -1016,9 +1074,12 @@ function renderObjetivoAlquimia() {
           <div class="current-goal-desc">${escapeHtml(actual.descripcion || "")}</div>
         </div>
       </div>
-      <div class="goal-meta-row"><span>Meta</span><strong>1 alquimia Excelente</strong></div>
+      <div class="goal-meta-row"><span>Plan maestro</span><strong>${hechosPlan} / ${totalPlan} objetivos</strong></div>
+      ${planCompleto
+        ? `<div class="goal-lock-hint ready">Plan completado. Ya puedes marcar tu alquimia como completada.</div>`
+        : `<div class="goal-lock-hint">Completa los objetivos del plan en orden para desbloquear el botón.</div>`}
       <div class="current-goal-actions">
-        <button class="btn-complete done" onclick="marcarObjetivoCompletado()">${svgIcon("check", "btn-svg")} Completado</button>
+        <button class="btn-complete done" onclick="marcarObjetivoCompletado()" ${planCompleto ? "" : "disabled"}>${svgIcon("check", "btn-svg")} Completado</button>
         <button class="btn-complete" onclick="reiniciarObjetivoAlquimia()">${svgIcon("refresh", "btn-svg")} Reiniciar</button>
       </div>
       ${historial.length ? `<div class="goal-last">Completados: ${historial.length}${historial[0] ? ` · Último: ${escapeHtml(historial[0].titulo || "")}` : ""}</div>` : ""}
@@ -1030,10 +1091,15 @@ function marcarObjetivoCompletado() {
   const actual = objetivoAlquimiaActual();
   if (!actual) return;
 
+  if (!planMaestroCompletado()) {
+    alert("Completa todos los objetivos del plan en orden antes de marcar la alquimia como completada.");
+    return;
+  }
+
   const texto = document.getElementById("objetivoCompletadoTexto");
   const sig = document.getElementById("objetivoCompletadoSiguiente");
   if (texto) texto.textContent = actual.titulo;
-  if (sig) sig.textContent = "Puedes continuar con esta alquimia o comenzar una nueva desde cero.";
+  if (sig) sig.textContent = "Comenzar una nueva alquimia reiniciará los objetivos del plan para volver a progresar desde el inicio.";
 
   const modal = document.getElementById("modalObjetivoCompletado");
   if (modal) modal.classList.add("active");
@@ -1062,6 +1128,7 @@ function completarObjetivo(accion) {
 
   archivarObjetivoActual();
   if (accion === "nueva") {
+    reiniciarProgresoPlan();
     STATE.objetivoAlquimia.actual = crearObjetivoAlquimiaExcelente();
   }
   switchFinanzasTab("plan");
@@ -1110,10 +1177,21 @@ function renderObjetivos() {
 
 function toggleObjetivo(id) {
   const o = (STATE.objetivos || []).find(x => String(x.id) === String(id));
-  if (o) {
+  if (!o) return;
+
+  if (!o.esHitoPlan) {
     o.completado = !o.completado;
     saveState();
+    return;
   }
+
+  // Los hitos del plan son secuenciales y quedan bloqueados al completarse.
+  if (o.completado) return;
+  const activo = obtenerHitoActivoPlan();
+  if (!activo || String(activo.id) !== String(o.id)) return;
+
+  o.completado = true;
+  saveState();
 }
 
 function agregarNuevoObjetivo() {

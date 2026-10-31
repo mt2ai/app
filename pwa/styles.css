@@ -2342,6 +2342,22 @@ body {
   font-weight: 600;
 }
 
+.goal-lock-hint {
+  margin-top: 10px;
+  font-size: 0.66rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.goal-lock-hint.ready {
+  color: #6fd3a8;
+}
+
+.current-goal-actions .btn-complete:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .current-goal-progress {
   display: flex;
   align-items: center;
@@ -2465,6 +2481,20 @@ body {
   opacity: 0.62;
 }
 
+.objective-row.current {
+  border-color: rgba(201, 162, 39, 0.35);
+  background: rgba(201, 162, 39, 0.035);
+}
+
+.objective-row.locked {
+  opacity: 0.45;
+}
+
+.objective-row.locked .objective-main,
+.objective-check:disabled {
+  cursor: not-allowed;
+}
+
 .objective-main {
   display: flex;
   align-items: flex-start;
@@ -2520,6 +2550,18 @@ body {
   background: rgba(93, 173, 226, 0.08);
   color: var(--blue);
   border: 1px solid rgba(93, 173, 226, 0.2);
+}
+
+.objective-tag.active {
+  background: rgba(201, 162, 39, 0.1);
+  color: var(--gold);
+  border: 1px solid rgba(201, 162, 39, 0.26);
+}
+
+.objective-tag.locked {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-dim);
+  border: 1px solid #252932;
 }
 
 .objective-delete {
