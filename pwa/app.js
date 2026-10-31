@@ -169,13 +169,19 @@ function indiceDiaSemana(d = new Date()) {
   return (d.getDay() + 6) % 7; // 0 = lunes ... 6 = domingo
 }
 
-// Metin2 reinicia las tareas diarias a las 18:00 hora local.
-const HORA_RESET_JUEGO = 18;
-
+// El ciclo diario lo marca el servidor: medianoche en Europe/Madrid
+// (equivale aproximadamente a las 18:00 en Tuxtepec).
 function fechaJuegoISO(d = new Date()) {
-  const copia = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  if (d.getHours() < HORA_RESET_JUEGO) copia.setDate(copia.getDate() - 1);
-  return fechaLocalISO(copia);
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Madrid",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(d);
+
+  const valores = {};
+  partes.forEach(p => { valores[p.type] = p.value; });
+  return `${valores.year}-${valores.month}-${valores.day}`;
 }
 
 function indiceDiaJuego(d = new Date()) {
@@ -375,7 +381,7 @@ const OBJETIVO_ALQUIMIA_DEFAULT = {
 };
 
 const DEFAULT_STATE = {
-  version: 6,
+  version: 7,
   perfil: {
     nombre: "Mi Cuenta",
     servidor: "Ruby"
@@ -616,8 +622,8 @@ function mergeStateWithDefaults(parsed) {
   } else {
     merged.semanaHistorial = merged.semanaHistorial.slice();
   }
-  // Fechas de control diario/semanal (el ciclo de juego reinicia a las 18:00)
-  const migracionReset = (parsed.version || 0) < 6;
+  // Fechas de control diario/semanal según el día del servidor (Europe/Madrid)
+  const migracionReset = (parsed.version || 0) < 7;
   if (!merged.ultimoDia || migracionReset) merged.ultimoDia = fechaJuegoISO();
   if (!merged.inicioSemana || migracionReset) merged.inicioSemana = inicioSemanaJuegoISO();
 
@@ -1939,7 +1945,7 @@ function renderDashboardZoom() {
     const pct = Math.min(100, Math.round((cors / 140) * 100));
     const semColor = cors >= 100 ? 'semaphore-green' : (cors >= 70 ? 'semaphore-yellow' : 'semaphore-red');
 
-      const diaHoyIdx = indiceDiaJuego(); // ciclo de juego: reinicia a las 18:00
+      const diaHoyIdx = indiceDiaJuego(); // día actual del servidor (Europe/Madrid)
       cont.innerHTML = `
       <div class="card-title">
         <span>${svgIcon("calendar", "obj-icon")} Semana ${STATE.semanaActual} de 36</span>
