@@ -410,6 +410,29 @@ function switchZoom(zoomKey) {
 // ==========================================
 
 let filtroObjetivosActual = "plan";
+let activeFinanzasTab = "plan";
+let filtroEtapaActual = 0;
+
+function switchFinanzasTab(tabKey) {
+  activeFinanzasTab = tabKey;
+  document.querySelectorAll(".subnav-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.tab === tabKey);
+  });
+  const tabPlan = document.getElementById("tabFinanzasPlan");
+  const tabMercado = document.getElementById("tabFinanzasMercado");
+  const tabMetas = document.getElementById("tabFinanzasMetas");
+  if (tabPlan) tabPlan.style.display = tabKey === "plan" ? "block" : "none";
+  if (tabMercado) tabMercado.style.display = tabKey === "mercado" ? "block" : "none";
+  if (tabMetas) tabMetas.style.display = tabKey === "metas" ? "block" : "none";
+}
+
+function setFiltroEtapa(etapaNum) {
+  filtroEtapaActual = parseInt(etapaNum) || 0;
+  document.querySelectorAll(".etapa-pill").forEach(btn => {
+    btn.classList.toggle("active", parseInt(btn.dataset.etapa) === filtroEtapaActual);
+  });
+  renderObjetivos();
+}
 
 function setFiltroObjetivos(filtro) {
   filtroObjetivosActual = filtro;
@@ -435,26 +458,26 @@ function renderObjetivos() {
   const progBox = document.getElementById("progresoPlanBox");
   if (progBox) {
     progBox.innerHTML = `
-      <div style="background:var(--bg-input); padding:10px 12px; border-radius:var(--radius-sm); border:1px solid rgba(212,160,23,0.3);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <span style="font-size:0.8rem; font-weight:700; color:var(--gold);">🏆 Progreso de Hitos del Plan (36 Sem):</span>
-          <span class="semaphore-badge ${pctPlan >= 80 ? 'semaphore-green' : (pctPlan >= 40 ? 'semaphore-yellow' : 'semaphore-red')}">${hechosPlan} / ${hitosPlan.length} Hitos (${pctPlan}%)</span>
+      <div style="background:var(--bg-input); padding:8px 10px; border-radius:var(--radius-sm); border:1px solid rgba(212,160,23,0.3);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-size:0.75rem; font-weight:700; color:var(--gold);">🏆 Progreso Plan Maestro:</span>
+          <span class="semaphore-badge ${pctPlan >= 80 ? 'semaphore-green' : (pctPlan >= 40 ? 'semaphore-yellow' : 'semaphore-red')}">${hechosPlan}/${hitosPlan.length} (${pctPlan}%)</span>
         </div>
-        <div class="progress-track" style="height:6px; margin-bottom:4px;">
+        <div class="progress-track" style="height:5px; margin:4px 0 2px 0;">
           <div class="progress-fill ${pctPlan >= 80 ? 'green' : ''}" style="width:${pctPlan}%;"></div>
-        </div>
-        <div style="font-size:0.75rem; color:var(--text-muted); text-align:right;">
-          ${hechosPlan === hitosPlan.length ? "🌟 ¡Plan maestro completado al 100%!" : "El plan marca el rumbo; sacar más Cors acelera, pero el plan manda."}
         </div>
       </div>
     `;
   }
 
-  // Filtrar según pestaña activa
+  // Filtrar según etapa y categoría
   let filtrados = objs;
-  if (filtroObjetivosActual === "plan") {
+  if (activeFinanzasTab === "plan" || filtroObjetivosActual === "plan") {
     filtrados = objs.filter(o => o.esHitoPlan);
-  } else if (filtroObjetivosActual === "custom") {
+    if (filtroEtapaActual > 0) {
+      filtrados = filtrados.filter(o => o.etapa === filtroEtapaActual);
+    }
+  } else if (activeFinanzasTab === "metas" || filtroObjetivosActual === "custom") {
     filtrados = objs.filter(o => !o.esHitoPlan);
   }
 
@@ -830,13 +853,14 @@ let sessionSeconds = 12 * 60;
 let sessionRunning = false;
 
 function toggleSessionTimer() {
+  const btn = document.getElementById("btnTimerToggle");
   if (sessionRunning) {
     clearInterval(sessionTimerId);
     sessionRunning = false;
-    document.getElementById("btnTimerToggle").textContent = "▶️ Reanudar";
+    if (btn) btn.textContent = "▶";
   } else {
     sessionRunning = true;
-    document.getElementById("btnTimerToggle").textContent = "⏸️ Pausar";
+    if (btn) btn.textContent = "⏸";
     sessionTimerId = setInterval(() => {
       if (sessionSeconds > 0) {
         sessionSeconds--;
@@ -844,7 +868,8 @@ function toggleSessionTimer() {
       } else {
         clearInterval(sessionTimerId);
         sessionRunning = false;
-        alert("🔔 ¡12 Minutos cumplidos! Hora de cambiar de personaje.");
+        if (btn) btn.textContent = "▶";
+        alert("🔔 ¡12 Minutos cumplidos! Hora de cambiar de fragmentero.");
       }
     }, 1000);
   }
@@ -854,7 +879,8 @@ function resetSessionTimer(minutos = 12) {
   clearInterval(sessionTimerId);
   sessionRunning = false;
   sessionSeconds = minutos * 60;
-  document.getElementById("btnTimerToggle").textContent = "▶️ Iniciar";
+  const btn = document.getElementById("btnTimerToggle");
+  if (btn) btn.textContent = "▶";
   renderSessionTimer();
 }
 
@@ -908,23 +934,29 @@ function renderDashboardZoom() {
   const cont = document.getElementById("zoomContainer");
   if (!cont) return;
 
+  const hechos = (STATE.granjeros || []).filter(g => g.hechoHoy).length;
+  const corsHoy = hechos * 5;
+  const dashBadge = document.getElementById("dashCorsBadge");
+  if (dashBadge) {
+    dashBadge.textContent = `Hoy: ${corsHoy}/20 Cors`;
+    dashBadge.className = `brand-badge ${corsHoy === 20 ? 'semaphore-green' : ''}`;
+  }
+
   if (activeZoom === "diario") {
-    const hechos = STATE.granjeros.filter(g => g.hechoHoy).length;
-    const corsHoy = hechos * 5;
     const pct = Math.round((corsHoy / 20) * 100);
 
     cont.innerHTML = `
-      <div class="card-title">
-        <span>⚡ Tarea Diaria (Hoy)</span>
+      <div class="card-title" style="margin-bottom:6px;">
+        <span>⚡ Tarea Diaria</span>
         <span class="semaphore-badge ${pct === 100 ? 'semaphore-green' : 'semaphore-yellow'}">${corsHoy} / 20 Cors (${pct}%)</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill ${pct === 100 ? 'green' : ''}" style="width: ${pct}%"></div>
       </div>
-      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
-        ${hechos === 4 ? '🎉 ¡Cuota completada! Descanso merecido.' : `Faltan ${4 - hechos} personaje(s) por fragmentar.`}
+      <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
+        ${hechos === 4 ? '🎉 ¡Cuota de hoy completada!' : `Faltan ${4 - hechos} personaje(s) por fragmentar.`}
       </p>
-      <button class="btn-primary" onclick="switchView('view-granjeros')" style="margin-top:0;">👥 Abrir Granjeros & Timer</button>
+      <button class="btn-primary" onclick="switchView('view-granjeros')" style="padding: 9px; font-size: 0.82rem;">👥 Abrir Fragmenteros ➔</button>
     `;
   } else if (activeZoom === "semanal") {
     const cors = STATE.corsSemanaActual;
@@ -1271,10 +1303,10 @@ function renderRuedaDSS() {
         : "Sin stock";
 
       return `
-        <div onclick="cambiarGemaActiva('${k}')" style="background:${esActiva ? 'rgba(212,160,23,0.15)' : 'var(--bg-card)'}; border:2px solid ${esActiva ? 'var(--gold)' : 'var(--border-card)'}; border-radius:var(--radius-sm); padding:8px 6px; text-align:center; cursor:pointer; transition:all 0.2s; box-shadow:${esActiva ? '0 0 12px var(--gold-glow)' : 'none'};">
-          <div style="font-size:1.3rem;">${g.icono}</div>
-          <div style="font-size:0.75rem; font-weight:800; color:${esActiva ? 'var(--gold)' : 'var(--text-main)'}; margin-top:2px;">${g.nombre}</div>
-          <div style="font-size:0.62rem; color:${totalPiedras > 0 ? 'var(--text-muted)' : 'var(--text-dim)'}; margin-top:4px; font-family:monospace;">
+        <div onclick="cambiarGemaActiva('${k}')" style="background:${esActiva ? 'rgba(212,160,23,0.18)' : 'var(--bg-input)'}; border:1px solid ${esActiva ? 'var(--gold)' : 'var(--border-card)'}; border-radius:var(--radius-sm); padding:6px 4px; text-align:center; cursor:pointer; transition:all 0.15s; box-shadow:${esActiva ? '0 0 10px var(--gold-glow)' : 'none'};">
+          <div style="font-size:1.15rem; line-height:1;">${g.icono}</div>
+          <div style="font-size:0.72rem; font-weight:800; color:${esActiva ? 'var(--gold)' : 'var(--text-main)'}; margin-top:2px;">${g.nombre}</div>
+          <div style="font-size:0.58rem; color:${totalPiedras > 0 ? 'var(--text-muted)' : 'var(--text-dim)'}; margin-top:2px; font-family:monospace;">
             ${subtitulo}
           </div>
         </div>
