@@ -3104,8 +3104,14 @@ function restaurarDesdeCodigoTexto() {
 }
 
 function restablecerTodosLosDatos() {
-  const confirmacion = confirm("⚠️ ¿Estás seguro de que deseas BORRAR TODOS los datos?\n\nEsta acción reiniciará tu progreso de cors, alquimia, objetivos y finanzas a cero, dejando la aplicación completamente limpia como recién instalada.");
+  const confirmacion = confirm("⚠️ ¿Estás seguro de que deseas BORRAR TODOS los datos de este dispositivo?\n\nEsta acción reiniciará tu progreso local y desconectará la sincronización. La copia en la nube NO se borra: podrás restaurarla después con tu código de sincronización.");
   if (!confirmacion) return;
+
+  if (typeof desconectarSyncSilencioso === "function") {
+    desconectarSyncSilencioso();
+  } else {
+    localStorage.removeItem("naaytracker_sync");
+  }
 
   localStorage.removeItem("naaytracker_state");
   STATE = JSON.parse(JSON.stringify(DEFAULT_STATE));
@@ -3114,7 +3120,7 @@ function restablecerTodosLosDatos() {
   saveState();
   renderAll();
   cerrarModal("modalAjustes");
-  alert("🧹 Todos los datos han sido borrados. La aplicación está completamente limpia.");
+  alert("🧹 Datos locales borrados y sincronización desconectada. La copia en la nube sigue disponible si vuelves a conectar tu código.");
   if (typeof window !== "undefined" && window.location) {
     window.location.reload();
   }

@@ -287,14 +287,18 @@ async function conectarSync() {
   }
 }
 
-function desconectarSync() {
-  if (!confirm("¿Desconectar la sincronización de este dispositivo? Los datos locales no se borrarán.")) return;
+function desconectarSyncSilencioso() {
   syncMeta = { code: "", lastRemoteUpdatedAt: "", lastSyncAt: 0, dirty: false };
   guardarSyncMeta();
   const input = document.getElementById("syncCode");
   if (input) input.value = "";
   syncEstado = "idle";
   syncUltimoError = "";
+}
+
+function desconectarSync() {
+  if (!confirm("¿Desconectar la sincronización de este dispositivo? Los datos locales no se borrarán.")) return;
+  desconectarSyncSilencioso();
   renderSyncUI("Sincronización desconectada.");
 }
 
