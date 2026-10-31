@@ -1,11 +1,14 @@
 // Service Worker para NaayTracker (Offline-First Ultra Privado)
-const CACHE_NAME = 'naaytracker-v2';
+const CACHE_NAME = 'naaytracker-v3';
 const ASSETS_TO_CACHE = [
-  '/app/',
-  '/app/index.html',
-  '/app/styles.css',
-  '/app/app.js',
-  '/app/manifest.json'
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './icon.svg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -33,7 +36,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Ignorar llamadas externas de red a Google Sheets o CDNs (usar network first con fallback si es posible)
+  // Ignorar llamadas externas de red (Sheets, etc.)
   if (!event.request.url.startsWith(self.location.origin)) {
     return;
   }
@@ -53,12 +56,10 @@ self.addEventListener('fetch', (event) => {
         });
         return networkResponse;
       }).catch(() => {
-        // Si está completamente offline y pide index
-        if (event.request.headers.get('accept').includes('text/html')) {
+        if (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html')) {
           return caches.match('./index.html');
         }
       });
     })
   );
 });
-

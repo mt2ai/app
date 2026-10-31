@@ -32,6 +32,20 @@
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none; /* Desactiva menú contextual en pulsación prolongada */
+  -webkit-user-select: none;   /* Desactiva selección que provoca 'Buscar en Google' */
+  user-select: none;          /* Impide 'Tocar para buscar' en Chrome Android */
+}
+
+/* Solo permitir selección en inputs y áreas de texto */
+input, textarea {
+  -webkit-user-select: text !important;
+  user-select: text !important;
+}
+
+/* Evitar retraso de 300ms y dobles toques accidentales */
+button, a, select, .card, .btn-counter, .btn-icon, .btn-primary, .btn-secondary, .btn-complete, .tab-btn, .zoom-btn {
+  touch-action: manipulation;
 }
 
 body {

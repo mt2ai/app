@@ -1777,8 +1777,44 @@ function restablecerTodosLosDatos() {
 }
 
 // ==========================================
-// 12. INICIALIZACIÓN
+// 12. INICIALIZACIÓN Y PWA INSTALL
 // ==========================================
+
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById("btnInstalarPwa");
+  if (btn) btn.style.display = "inline-flex";
+});
+
+window.addEventListener("appinstalled", () => {
+  deferredInstallPrompt = null;
+  const btn = document.getElementById("btnInstalarPwa");
+  if (btn) btn.style.display = "none";
+});
+
+function instalarPWA() {
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    deferredInstallPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === "accepted") {
+        console.log("PWA instalada con éxito");
+      }
+      deferredInstallPrompt = null;
+      const btn = document.getElementById("btnInstalarPwa");
+      if (btn) btn.style.display = "none";
+    });
+  } else {
+    const esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (esIOS) {
+      alert("📱 Para instalar NaayTracker en iPhone:\n\n1. Toca el botón 'Compartir' (el icono con una flecha hacia arriba ⎋ o ⬆️ en Safari).\n2. Baja y pulsa en 'Agregar al inicio' (+).\n3. ¡Listo! Se abrirá como una aplicación nativa.");
+    } else {
+      alert("📱 Para instalar NaayTracker en Android:\n\n1. Pulsa en los tres puntos (⋮) arriba a la derecha en Chrome.\n2. Selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'.\n3. Si ya la tienes instalada, búscala en tu pantalla de inicio.");
+    }
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   renderAll();
