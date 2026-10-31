@@ -1484,53 +1484,19 @@ body {
 }
 
 .farmer-row-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  display: block;
 }
 
-.btn-stop-farmer {
+.farmer-complete-btn {
   width: 100%;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 8px;
-  border: 1px solid #2b303b;
-  border-radius: 8px;
-  background: #171a21;
-  color: var(--text-muted);
-  font-family: inherit;
-  font-size: 0.68rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  padding: 9px;
+  font-size: 0.7rem;
 }
 
-.btn-stop-farmer svg {
-  width: 11px;
-  height: 11px;
-}
-
-.btn-stop-farmer.ready {
-  border-color: rgba(201, 162, 39, 0.35);
-  color: var(--gold);
-  background: rgba(201, 162, 39, 0.08);
-}
-
-.btn-stop-farmer:disabled {
-  opacity: 0.38;
-  cursor: not-allowed;
-}
-
-.btn-stop-farmer:active:not(:disabled) {
-  transform: scale(0.97);
-}
-
-.farmer-row-actions .btn-complete {
-  justify-content: center;
-  padding: 8px;
-  font-size: 0.68rem;
+.farmer-complete-btn .btn-svg {
+  width: 12px;
+  height: 12px;
 }
 
 /* Cronómetro general */
@@ -1715,10 +1681,9 @@ body {
     grid-template-columns: 76px 1fr 52px;
   }
 
-  .farmer-row-actions .btn-complete,
-  .btn-stop-farmer {
-    padding: 7px 6px;
-    font-size: 0.64rem;
+  .farmer-complete-btn {
+    padding: 8px 6px;
+    font-size: 0.66rem;
   }
 
   .farmer-clock {

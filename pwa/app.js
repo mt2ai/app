@@ -1520,10 +1520,10 @@ function resetCronometroGeneral() {
   actualizarCronometroGeneral();
 }
 
-function detenerCronometroEnGranjero(index) {
+function detenerCronometroEnGranjero(index, guardar = true) {
   const cg = STATE.cronometroGeneral;
   const g = STATE.granjeros[index];
-  if (!cg || !cg.inicio || !g) return;
+  if (!cg || !cg.inicio || !g) return 0;
 
   const ms = Math.max(0, Date.now() - cg.inicio);
   if (ms > 0) {
@@ -1533,7 +1533,30 @@ function detenerCronometroEnGranjero(index) {
   }
 
   STATE.cronometroGeneral = { inicio: null, ultimoMs: ms, ultimoGranjero: index };
-  saveState();
+
+  if (guardar) {
+    saveState();
+    actualizarCronometroGeneral();
+  }
+  return ms;
+}
+
+function completarFragmentero(index) {
+  verificarCambioDia();
+  const g = STATE.granjeros[index];
+  if (!g) return;
+
+  // Si ya estaba completado, se desmarca y se descuenta el progreso.
+  if (g.hechoHoy) {
+    toggleGranjero(index);
+    return;
+  }
+
+  // Un solo botón: detiene y registra el tiempo, luego marca los 5 Cors.
+  if (cronometroGeneralCorriendo()) {
+    detenerCronometroEnGranjero(index, false);
+  }
+  toggleGranjero(index);
   actualizarCronometroGeneral();
 }
 
@@ -1559,7 +1582,7 @@ function actualizarCronometroGeneral() {
 
   if (hint) {
     if (corriendo) {
-      hint.textContent = "Corriendo · pulsa “Parar” en el fragmentero que termine.";
+      hint.textContent = "Corriendo · pulsa “Completar” en el fragmentero que termine.";
     } else if (cg.ultimoMs && cg.ultimoGranjero !== null && cg.ultimoGranjero !== undefined) {
       const g = STATE.granjeros[cg.ultimoGranjero];
       hint.textContent = `Último registro: ${g ? g.nombre : "Fragmentero"} · ${formatearCronometro(cg.ultimoMs)}`;
@@ -1858,11 +1881,12 @@ function renderGranjeros() {
         <span class="farmer-clock">${ultima}</span>
       </div>
       <div class="farmer-row-actions">
-        <button class="btn-stop-farmer ${cronometroActivo ? "ready" : ""}" onclick="detenerCronometroEnGranjero(${i})" ${cronometroActivo ? "" : "disabled"} title="Parar el cronómetro y asignar el tiempo a este fragmentero">
-          ${svgIcon("square", "btn-svg")} Parar
-        </button>
-        <button class="btn-complete ${g.hechoHoy ? 'done' : ''}" onclick="toggleGranjero(${i})">
-          ${g.hechoHoy ? 'Completado' : 'Marcar 5 Cors'}
+        <button class="btn-complete farmer-complete-btn ${g.hechoHoy ? 'done' : ''}" onclick="completarFragmentero(${i})">
+          ${g.hechoHoy
+            ? svgIcon("check", "btn-svg") + " Completado"
+            : (cronometroActivo
+              ? svgIcon("square", "btn-svg") + " Completar y parar"
+              : svgIcon("check", "btn-svg") + " Marcar 5 Cors")}
         </button>
       </div>
     </div>`;

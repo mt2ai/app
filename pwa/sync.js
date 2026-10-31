@@ -41,6 +41,10 @@ function normalizarCodigoSync(codigo) {
 }
 
 function generarCodigoSync() {
+  if (syncMeta.code && !confirm("Ya estás conectado a un código de sincronización.\n\n¿Generar uno nuevo? El código actual seguirá activo hasta que pulses Conectar con el nuevo.")) {
+    return;
+  }
+
   let codigo = "";
   const bytes = new Uint32Array(12);
   if (window.crypto && window.crypto.getRandomValues) {
@@ -227,6 +231,13 @@ async function conectarSync() {
   if (codigo.length < 10) {
     alert("El código debe tener al menos 10 caracteres. Se recomienda usar 12.");
     return;
+  }
+
+  if (syncMeta.code && syncMeta.code !== codigo) {
+    const cambiar = confirm(
+      "Ya estás conectado al código actual.\n\nSi cambias, este dispositivo dejará de sincronizar con el código anterior y los demás dispositivos no verán tus cambios nuevos.\n\n¿Cambiar de código?"
+    );
+    if (!cambiar) return;
   }
 
   syncEstado = "syncing";
